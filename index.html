@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Mis Finanzas</title>
+
+  <!-- PWA / iPhone meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Finanzas" />
+  <meta name="theme-color" content="#0d1117" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1117'/%3E%3Ctext y='.9em' font-size='85' x='10'%3E💰%3C/text%3E%3C/svg%3E" />
+
+  <style>
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary:   #0d1117;
+      --bg-card:      #161b22;
+      --bg-card2:     #1c2130;
+      --border:       #30363d;
+      --text-primary: #e6edf3;
+      --text-muted:   #7d8590;
+      --green:        #2ea043;
+      --green-light:  #3fb950;
+      --green-dim:    #1a3a22;
+      --yellow:       #d29922;
+      --yellow-light: #f0c93a;
+      --yellow-dim:   #3a2d0e;
+      --red:          #da3633;
+      --red-light:    #f85149;
+      --red-dim:      #3d1a1a;
+      --blue:         #1f6feb;
+      --blue-light:   #388bfd;
+      --blue-dim:     #0d2340;
+      --accent:       #238636;
+      --radius:       14px;
+      --radius-sm:    8px;
+      --shadow:       0 4px 20px rgba(0,0,0,.45);
+      --shadow-card:  0 2px 10px rgba(0,0,0,.35);
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+      --safe-top:     env(safe-area-inset-top, 0px);
+    }
+
+    html { height: 100%; background: var(--bg-primary); }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding-top: var(--safe-top);
+      overflow-x: hidden;
+    }
+
+    /* ===================== LAYOUT ===================== */
+    #app {
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .page { display: none; padding: 0 0 calc(80px + var(--safe-bottom)) 0; }
+    .page.active { display: block; }
+
+    /* ===================== TOP HEADER ===================== */
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,17,23,.92);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .top-header h1 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+    .top-header .date-badge {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-card2);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* ===================== BOTTOM NAV ===================== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: rgba(22,27,34,.95);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 200;
+      padding-bottom: var(--safe-bottom);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 10px 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: color .2s;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .2px;
+    }
+    .nav-btn .nav-icon { font-size: 22px; transition: transform .2s; }
+    .nav-btn.active { color: var(--green-light); }
+    .nav-btn.active .nav-icon { transform: scale(1.15); }
+
+    /* ===================== CARDS ===================== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      margin: 10px 14px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 10px;
+    }
+
+    /* ===================== PROGRESS BAR ===================== */
+    .progress-bar-wrap {
+      background: var(--bg-card2);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+      margin: 6px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-green  { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+    .bar-yellow { background: linear-gradient(90deg, var(--yellow), var(--yellow-light)); }
+    .bar-red    { background: linear-gradient(90deg, var(--red), var(--red-light)); }
+    .bar-blue   { background: linear-gradient(90deg, var(--blue), var(--blue-light)); }
+
+    /* ===================== BADGES ===================== */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .badge-red    { background: var(--red-dim);    color: var(--red-light); }
+    .badge-yellow { background: var(--yellow-dim); color: var(--yellow-light); }
+    .badge-green  { background: var(--green-dim);  color: var(--green-light); }
+    .badge-blue   { background: var(--blue-dim);   color: var(--blue-light); }
+    .badge-paid   { background: #1a2a1a; color: #4caf50; }
+
+    /* ===================== BUTTONS ===================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(.96); }
+    .btn-green  { background: var(--green);  color: #fff; }
+    .btn-green:hover  { background: var(--green-light); }
+    .btn-red    { background: var(--red);    color: #fff; }
+    .btn-blue   { background: var(--blue);   color: #fff; }
+    .btn-blue:hover   { background: var(--blue-light); }
+    .btn-ghost  { background: var(--bg-card2); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-ghost:hover  { border-color: var(--blue-light); color: var(--blue-light); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* ===================== INPUTS ===================== */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .input-group label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .input-field {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .18s;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+    .input-field:focus { border-color: var(--blue-light); }
+
+    /* ===================== MODAL ===================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 300;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px 16px calc(20px + var(--safe-bottom));
+      width: 100%;
+      max-width: 430px;
+      animation: slideUp .28s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);   opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ===================== SECTION PADDING ===================== */
+    .section-wrap { padding: 6px 0; }
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 12px 16px 4px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    /* ===================== ALERT BANNER ===================== */
+    .alert-banner {
+      margin: 8px 14px 0;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      animation: fadeIn .3s;
+    }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: translateY(0); } }
+    .alert-urgent   { background: var(--red-dim);    border: 1px solid var(--red);    color: var(--red-light); }
+    .alert-warning  { background: var(--yellow-dim); border: 1px solid var(--yellow); color: var(--yellow-light); }
+    .alert-info     { background: var(--blue-dim);   border: 1px solid var(--blue);   color: var(--blue-light); }
+
+    /* ===================== STAT GRID ===================== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 8px 14px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+    .stat-value { font-size: 18px; font-weight: 700; letter-spacing: -.5px; }
+    .stat-value.red    { color: var(--red-light); }
+    .stat-value.green  { color: var(--green-light); }
+    .stat-value.yellow { color: var(--yellow-light); }
+    .stat-value.blue   { color: var(--blue-light); }
+
+    /* ===================== DEBT CARD ===================== */
+    .debt-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin: 8px 14px;
+      box-shadow: var(--shadow-card);
+      transition: border-color .2s;
+    }
+    .debt-card.urgent  { border-color: var(--red);    }
+    .debt-card.warning { border-color: var(--yellow);  }
+    .debt-card.paid    { border-color: var(--green);   opacity: .7; }
+    .debt-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .debt-name  { font-size: 15px; font-weight: 700; }
+    .debt-type  { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .debt-amount { font-size: 22px; font-weight: 800; letter-spacing: -.5px; margin: 6px 0; }
+    .debt-meta  {
+      display: flex;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .debt-meta span { display: flex; align-items: center; gap: 3px; }
+    .debt-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+    /* ===================== QUINCENA CARD ===================== */
+    .q-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 8px 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: border-color .2s;
+    }
+    .q-card.current { border-color: var(--blue); }
+    .q-card.done    { border-color: var(--green); opacity: .75; }
+    .q-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 14px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      gap: 8px;
+    }
+    .q-card-header:active { background: rgba(255,255,255,.03); }
+    .q-title { font-size: 14px; font-weight: 700; flex: 1; }
+    .q-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .q-chevron { color: var(--text-muted); font-size: 13px; transition: transform .25s; }
+    .q-card.open .q-chevron { transform: rotate(180deg); }
+    .q-body {
+      display: none;
+      padding: 0 14px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .q-card.open .q-body { display: block; }
+    .q-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(48,54,61,.5);
+    }
+    .q-row:last-child { border-bottom: none; }
+    .q-row-label { color: var(--text-muted); flex: 1; }
+    .q-row-amount { font-weight: 600; font-size: 13px; }
+    .q-row-amount.pos { color: var(--green-light); }
+    .q-row-amount.neg { color: var(--red-light); }
+    .q-row-amount.avail { color: var(--blue-light); }
+    .q-row-amount.zero  { color: var(--text-muted); }
+    .q-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 10px;
+      background: var(--bg-card2);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background .18s;
+    }
+    .q-checkbox:active { background: var(--border); }
+    .q-check-input { width: 18px; height: 18px; accent-color: var(--green-light); cursor: pointer; }
+    .q-payments { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .q-payment-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--bg-card2);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      gap: 6px;
+    }
+    .q-payment-item.paid-item { opacity: .6; }
+    .q-payment-label { flex: 1; color: var(--text-primary); }
+    .q-payment-amount { color: var(--red-light); font-weight: 600; margin-right: 8px; }
+    .q-payment-check { width: 16px; height: 16px; accent-color: var(--green-light); cursor: pointer; }
+
+    /* ===================== ACCOUNT CARD ===================== */
+    .account-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 8px 14px;
+      box-shadow: var(--shadow-card);
+    }
+    .account-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .account-bank   { font-size: 15px; font-weight: 700; }
+    .account-type   { font-size: 11px; color: var(--text-muted); }
+    .account-balance-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .account-balance-label { font-size: 12px; color: var(--text-muted); }
+    .account-balance-val   { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+    .account-aside { font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 6px; }
+    .account-available { color: var(--green-light); font-weight: 600; }
+
+    /* ===================== HISTORY ===================== */
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .history-info { flex: 1; }
+    .history-name { font-weight: 600; font-size: 13px; }
+    .history-date { color: var(--text-muted); }
+    .history-amount { font-weight: 700; color: var(--red-light); }
+
+    /* ===================== FREEDOM BANNER ===================== */
+    .freedom-card {
+      margin: 8px 14px;
+      background: linear-gradient(135deg, #0d2340, #1a3a22);
+      border: 1px solid var(--blue);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .freedom-title { font-size: 13px; font-weight: 700; color: var(--blue-light); margin-bottom: 8px; letter-spacing: .5px; text-transform: uppercase; }
+    .freedom-pct   { font-size: 36px; font-weight: 900; color: var(--text-primary); letter-spacing: -1px; }
+    .freedom-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .freedom-bar   { margin-top: 10px; }
+
+    /* ===================== DIVIDER ===================== */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 14px;
+      opacity: .6;
+    }
+
+    /* ===================== EMPTY STATE ===================== */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ===================== TOAST ===================== */
+    #toast {
+      position: fixed;
+      bottom: calc(90px + var(--safe-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transition: all .3s;
+      z-index: 500;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ===================== SCROLLBAR ===================== */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ===================== UTILITIES ===================== */
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .mt-4 { margin-top: 4px; }
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+    .text-muted { color: var(--text-muted); }
+    .text-green  { color: var(--green-light); }
+    .text-red    { color: var(--red-light); }
+    .text-yellow { color: var(--yellow-light); }
+    .text-blue   { color: var(--blue-light); }
+    .font-bold { font-weight: 700; }
+    .fs-12 { font-size: 12px; }
+    .fs-13 { font-size: 13px; }
+
+    /* No smooth scroll on iOS for perf */
+    .page { -webkit-overflow-scrolling: touch; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- =================== TOP HEADER =================== -->
+  <header class="top-header">
+    <h1>💰 Mis Finanzas</h1>
+    <span class="date-badge" id="headerDate"></span>
+  </header>
+
+  <!-- =================== PAGES =================== -->
+
+  <!-- PAGE: INICIO -->
+  <div id="page-inicio" class="page active">
+    <!-- Alerts -->
+    <div id="alertsContainer"></div>
+
+    <!-- Freedom progress -->
+    <div class="freedom-card">
+      <div class="freedom-title">🏆 Libertad Financiera</div>
+      <div class="flex-between">
+        <div>
+          <div class="freedom-pct" id="freedomPct">0%</div>
+          <div class="freedom-sub" id="freedomSub">Calculando deudas…</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text-muted)">Meta</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green-light)">Dic 2025</div>
+        </div>
+      </div>
+      <div class="freedom-bar">
+        <div class="progress-bar-wrap" style="height:10px">
+          <div class="progress-bar-fill bar-blue" id="freedomBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">💸 Total deudas</div>
+        <div class="stat-value red" id="totalDebt">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💵 En cuentas</div>
+        <div class="stat-value green" id="totalCash">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🎯 Disponible</div>
+        <div class="stat-value blue" id="totalAvail">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🔔 Pagos próximos</div>
+        <div class="stat-value yellow" id="upcomingCount">—</div>
+      </div>
+    </div>
+
+    <!-- Upcoming payments -->
+    <div class="section-label">Próximos pagos (7 días)</div>
+    <div id="upcomingList"></div>
+
+    <!-- Today action -->
+    <div class="section-label">📌 Acción de hoy</div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">02/08/2025 — Disponible para deudas</div>
+      <div style="font-size:22px;font-weight:800;color:var(--green-light)">$689.00</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">De los $1,189 en cuentas menos $500 de colchón</div>
+      <div style="margin-top:10px;font-size:13px;font-weight:600;color:var(--yellow-light)">⚡ Acción: Pagar prórroga/extensión de MoneyMan (vence 05/08)</div>
+    </div>
+
+    <!-- History shortcut -->
+    <div class="section-label">Últimos pagos</div>
+    <div id="historyShort" class="card" style="padding:0;overflow:hidden">
+      <div class="empty-state" style="padding:20px">
+        <div class="emoji">📋</div>
+        <p>Aquí aparecerán tus pagos registrados</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: DEUDAS -->
+  <div id="page-deudas" class="page">
+    <div class="section-label">Tarjetas de Crédito</div>
+    <div id="cards-list"></div>
+    <div class="section-label">Préstamos</div>
+    <div id="loans-list"></div>
+  </div>
+
+  <!-- PAGE: PLAN -->
+  <div id="page-plan" class="page">
+    <div class="section-label">🗓 Plan Quincena por Quincena</div>
+    <div class="card" style="margin-top:6px">
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
+        Plan precargado con cálculos de IA. Marca los pagos como realizados para actualizar los saldos automáticamente. 🎯
+      </div>
+    </div>
+    <div id="plan-list"></div>
+  </div>
+
+  <!-- PAGE: CUENTAS -->
+  <div id="page-cuentas" class="page">
+    <div class="section-label">Mis Cuentas Bancarias</div>
+    <div id="accounts-list"></div>
+    <div class="section-label">Historial de Pagos</div>
+    <div class="card" style="padding:0;overflow:hidden" id="historyFull">
+      <div class="empty-state" style="padding:20px">
+        <div class="emoji">📋</div>
+        <p>Registra pagos desde la sección Deudas para ver el historial aquí.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== BOTTOM NAV =================== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="inicio">
+      <span class="nav-icon">🏠</span>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-btn" data-page="deudas">
+      <span class="nav-icon">💳</span>
+      <span>Deudas</span>
+    </button>
+    <button class="nav-btn" data-page="plan">
+      <span class="nav-icon">📅</span>
+      <span>Plan</span>
+    </button>
+    <button class="nav-btn" data-page="cuentas">
+      <span class="nav-icon">🏦</span>
+      <span>Cuentas</span>
+    </button>
+  </nav>
+
+</div><!-- /#app -->
+
+<!-- =================== PAYMENT MODAL =================== -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Registrar Pago</div>
+      <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
+    </div>
+    <div class="input-group">
+      <label>Monto a pagar (MXN)</label>
+      <input class="input-field" type="number" id="modalAmount" placeholder="0.00" inputmode="decimal" />
+    </div>
+    <div class="input-group">
+      <label>Nota (opcional)</label>
+      <input class="input-field" type="text" id="modalNote" placeholder="Ej: Pago mínimo, Liquidación…" />
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('paymentModal')">Cancelar</button>
+      <button class="btn btn-green" style="flex:1" id="modalConfirm">Confirmar Pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== ACCOUNT EDIT MODAL =================== -->
+<div class="modal-overlay" id="accountModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="accountModalTitle">Actualizar Saldo</div>
+      <button class="modal-close" onclick="closeModal('accountModal')">✕</button>
+    </div>
+    <div class="input-group">
+      <label>Saldo total</label>
+      <input class="input-field" type="number" id="accountBalance" placeholder="0.00" inputmode="decimal" />
+    </div>
+    <div class="input-group">
+      <label>Guardado / Apartado</label>
+      <input class="input-field" type="number" id="accountSaved" placeholder="0.00" inputmode="decimal" />
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('accountModal')">Cancelar</button>
+      <button class="btn btn-green" style="flex:1" id="accountConfirm">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== TOAST =================== -->
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   UTILS
+   ========================================================= */
+const $ = (sel, ctx = document) => ctx.querySelector(sel);
+const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+const fmt = n => {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '$' + parseFloat(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const fmtDate = d => {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+};
+
+const today = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+};
+
+const daysUntil = dateStr => {
+  if (!dateStr) return 9999;
+  const d = new Date(dateStr + 'T12:00:00');
+  const now = new Date();
+  now.setHours(12,0,0,0);
+  return Math.round((d - now) / 86400000);
+};
+
+const urgencyClass = dateStr => {
+  const d = daysUntil(dateStr);
+  if (d < 0)  return 'urgent';
+  if (d <= 3) return 'urgent';
+  if (d <= 7) return 'warning';
+  return '';
+};
+
+const urgencyBadge = dateStr => {
+  const d = daysUntil(dateStr);
+  if (d < 0)        return '<span class="badge badge-red">VENCIDO</span>';
+  if (d === 0)      return '<span class="badge badge-red">HOY</span>';
+  if (d === 1)      return '<span class="badge badge-red">MAÑANA</span>';
+  if (d <= 3)       return `<span class="badge badge-red">En ${d} días</span>`;
+  if (d <= 7)       return `<span class="badge badge-yellow">En ${d} días</span>`;
+  return `<span class="badge badge-green">En ${d} días</span>`;
+};
+
+let toastTimer;
+const showToast = msg => {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+};
+
+/* =========================================================
+   DEFAULT DATA
+   ========================================================= */
+const DEFAULT = {
+  accounts: [
+    { id: 'santander_debit', bank: 'Santander', type: 'Débito', balance: 1.45, saved: 0.12 },
+    { id: 'bbva',            bank: 'BBVA',      type: 'Débito', balance: 0.98, saved: 1187.00 }
+  ],
+  debts: [
+    // --- Tarjetas ---
+    {
+      id: 'tdclikeu1', name: 'TDC LikeU', bank: 'Santander', type: 'Tarjeta de Crédito',
+      limit: 7000, balance: 6966.00, originalBalance: 6966.00,
+      minPayment: 360.30, noInterestPayment: 6242.20, dueDate: '2025-07-24', paid: false
+    },
+    {
+      id: 'tdclikeu2', name: 'TDC LikeU 2 (Aeromexico)', bank: 'Santander', type: 'Tarjeta de Crédito',
+      limit: 7500, balance: 7466.87, originalBalance: 7466.87,
+      minPayment: 0, noInterestPayment: 7392.87, dueDate: '2025-07-30', paid: false
+    },
+    // --- Préstamos ---
+    {
+      id: 'prestamo_santander', name: 'Préstamo Santander', bank: 'Santander', type: 'Préstamo',
+      balance: 29068.55, originalBalance: 29068.55,
+      nextPayment: 1333.77, dueDate: '2025-08-15', totalPaid: 1337.00, auto: true, paid: false
+    },
+    {
+      id: 'moneyman', name: 'MoneyMan', bank: 'MoneyMan', type: 'Préstamo',
+      requested: 5500, balance: 8628.54, originalBalance: 8628.54,
+      dueDate: '2025-08-05', paid: false
+    },
+    {
+      id: 'credito365', name: 'Crédito 365', bank: 'Crédito 365', type: 'Préstamo',
+      requested: 1900, balance: 2735.00, originalBalance: 2735.00,
+      dueDate: '2025-08-14', paid: false
+    },
+    {
+      id: 'kueski', name: 'Kueski', bank: 'Kueski', type: 'Préstamo',
+      balance: 8687.52, originalBalance: 8687.52,
+      nextPayment: 1432.00, dueDate: '2025-08-17',
+      totalPaid: 1432.00, totalPayments: 8, paymentsMade: 1, paid: false
+    }
+  ],
+  payments: [], // history
+  plan: [
+    {
+      id: 'hoy', label: 'Hoy — 02/08', dates: '02/08/2025', income: 0, special: true,
+      rows: [
+        { label: '💰 Total en cuentas', amount: 1189.00, type: 'pos' },
+        { label: '🛡 Colchón intocable', amount: -500.00, type: 'neg' },
+        { label: '🎯 Disponible para deudas', amount: 689.00, type: 'avail' },
+      ],
+      payments: [
+        { id: 'hoy_moneyman', label: '⚡ MoneyMan — prórroga', amount: 689.00, debtId: 'moneyman', done: false }
+      ]
+    },
+    {
+      id: 'q1', label: 'Q1 — 12-15 Agosto', dates: '12-15/08/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏋 Gimnasio (día 20)',          amount: -1400.00,  type: 'neg' },
+        { label: '📲 Kueski pago 2',              amount: -1432.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  2834.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q1_likeu1_min', label: 'TDC LikeU 1 — mínimo', amount: 360.30, debtId: 'tdclikeu1', done: false },
+        { id: 'q1_credito365', label: 'Crédito 365 — abono', amount: 2473.93, debtId: 'credito365', done: false }
+      ]
+    },
+    {
+      id: 'q2', label: 'Q2 — 27-30 Agosto', dates: '27-30/08/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏠 Renta septiembre (día 1)',   amount: -2000.00,  type: 'neg' },
+        { label: '📲 Kueski pago 3',              amount: -1432.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  2234.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q2_credito365_liq', label: 'Crédito 365 — LIQUIDAR ✅', amount: 261.07, debtId: 'credito365', done: false },
+        { id: 'q2_likeu1_min',     label: 'TDC LikeU 1 — mínimo',      amount: 400.00, debtId: 'tdclikeu1', done: false },
+        { id: 'q2_likeu2_min',     label: 'TDC LikeU 2 — mínimo',      amount: 400.00, debtId: 'tdclikeu2', done: false },
+        { id: 'q2_moneyman',       label: 'MoneyMan — abono',           amount: 1173.16, debtId: 'moneyman', done: false }
+      ]
+    },
+    {
+      id: 'q3', label: 'Q3 — 12-15 Septiembre', dates: '12-15/09/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏋 Gimnasio (día 20)',          amount: -1400.00,  type: 'neg' },
+        { label: '📲 Kueski pago 4',              amount: -1432.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  2834.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q3_tdcs',     label: 'TDC LikeU 1+2 — mínimos', amount: 800.00, debtId: 'tdclikeu1', done: false },
+        { id: 'q3_moneyman', label: 'MoneyMan — abono',         amount: 2034.23, debtId: 'moneyman', done: false }
+      ]
+    },
+    {
+      id: 'q4', label: 'Q4 — 27-30 Septiembre', dates: '27-30/09/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏠 Renta octubre (día 1)',      amount: -2000.00,  type: 'neg' },
+        { label: '📲 Kueski pago 5',              amount: -1432.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  2234.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q4_tdcs',     label: 'TDC LikeU 1+2 — mínimos', amount: 800.00, debtId: 'tdclikeu1', done: false },
+        { id: 'q4_moneyman', label: 'MoneyMan — abono',         amount: 1434.23, debtId: 'moneyman', done: false }
+      ]
+    },
+    {
+      id: 'q5', label: 'Q5 — 12-15 Octubre', dates: '12-15/10/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏋 Gimnasio (día 20)',          amount: -1400.00,  type: 'neg' },
+        { label: '📲 Kueski pago 6',              amount: -1432.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  2834.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q5_tdcs',     label: 'TDC LikeU 1+2 — mínimos', amount: 800.00, debtId: 'tdclikeu1', done: false },
+        { id: 'q5_moneyman', label: 'MoneyMan — abono',         amount: 2034.23, debtId: 'moneyman', done: false }
+      ]
+    },
+    {
+      id: 'q6', label: 'Q6 — 27-30 Octubre', dates: '27-30/10/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏠 Renta noviembre (día 1)',    amount: -2000.00,  type: 'neg' },
+        { label: '📲 Kueski pago 7',              amount: -1432.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  2234.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q6_tdcs',     label: 'TDC LikeU 1+2 — mínimos', amount: 800.00, debtId: 'tdclikeu1', done: false },
+        { id: 'q6_moneyman', label: 'MoneyMan — abono',         amount: 1434.23, debtId: 'moneyman', done: false }
+      ]
+    },
+    {
+      id: 'q7', label: 'Q7 — 12-15 Noviembre', dates: '12-15/11/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏋 Gimnasio (día 20)',          amount: -1400.00,  type: 'neg' },
+        { label: '📲 Kueski pago final',          amount:  -95.52,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  4170.71,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q7_moneyman_liq', label: 'MoneyMan — LIQUIDAR ✅',       amount: 518.46, debtId: 'moneyman',  done: false },
+        { id: 'q7_likeu1_abono', label: 'TDC LikeU 1 — abono fuerte',   amount: 3652.25, debtId: 'tdclikeu1', done: false }
+      ]
+    },
+    {
+      id: 'q8', label: 'Q8 — 27-30 Noviembre', dates: '27-30/11/2025', income: 7500,
+      rows: [
+        { label: '💼 Ingreso quincena',          amount:  7500.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏠 Renta diciembre (día 1)',    amount: -2000.00,  type: 'neg' },
+        { label: '🎯 Disponible para deudas',     amount:  3666.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q8_likeu1_liq', label: 'TDC LikeU 1 — LIQUIDAR ✅', amount: 3000.00, debtId: 'tdclikeu1', done: false },
+        { id: 'q8_likeu2',     label: 'TDC LikeU 2 — abono',       amount: 666.23, debtId: 'tdclikeu2', done: false }
+      ]
+    },
+    {
+      id: 'q9', label: 'Q9 — 12-15 Diciembre 🎄', dates: '12-15/12/2025', income: 45000, special: true,
+      rows: [
+        { label: '💼 Quincena normal',           amount:  7500.00,  type: 'pos' },
+        { label: '🎁 Aguinaldo',                 amount:  7500.00,  type: 'pos' },
+        { label: '💎 Fondo de ahorro',           amount: 30000.00,  type: 'pos' },
+        { label: '🛡 Colchón',                   amount:  -500.00,  type: 'neg' },
+        { label: '🏦 Santander Préstamo (auto)', amount: -1333.77,  type: 'neg' },
+        { label: '🏋 Gimnasio',                  amount: -1400.00,  type: 'neg' },
+        { label: '🎯 Fondo para deudas',         amount: 41766.23,  type: 'avail' },
+      ],
+      payments: [
+        { id: 'q9_likeu2_liq',   label: 'TDC LikeU 2 — LIQUIDAR ✅',             amount: 6500.00, debtId: 'tdclikeu2', done: false },
+        { id: 'q9_santander_liq', label: 'Préstamo Santander — LIQUIDAR ✅',     amount: 17064.62, debtId: 'prestamo_santander', done: false }
+      ]
+    }
+  ]
+};
+
+/* =========================================================
+   STATE — load from localStorage or defaults
+   ========================================================= */
+let STATE;
+
+const STORAGE_KEY = 'finanzas_v3';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      STATE = JSON.parse(raw);
+      // Merge new fields if missing (in case of version bumps)
+      if (!STATE.payments) STATE.payments = [];
+    } else {
+      STATE = JSON.parse(JSON.stringify(DEFAULT));
+    }
+  } catch(e) {
+    STATE = JSON.parse(JSON.stringify(DEFAULT));
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+}
+
+function resetState() {
+  if (!confirm('¿Resetear todos los datos? Perderás todos tus pagos registrados.')) return;
+  STATE = JSON.parse(JSON.stringify(DEFAULT));
+  saveState();
+  renderAll();
+  showToast('✅ Datos reiniciados');
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function navigate(page) {
+  $$('.page').forEach(p => p.classList.remove('active'));
+  $$('.nav-btn').forEach(b => b.classList.remove('active'));
+  $(`#page-${page}`).classList.add('active');
+  $(`[data-page="${page}"]`).classList.add('active');
+  window.scrollTo({ top: 0 });
+  renderPage(page);
+}
+
+$$('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.page));
+});
+
+function renderPage(page) {
+  if (page === 'inicio')  renderDashboard();
+  if (page === 'deudas')  renderDebts();
+  if (page === 'plan')    renderPlan();
+  if (page === 'cuentas') renderAccounts();
+}
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+function openModal(id) { $(`#${id}`).classList.add('open'); }
+function closeModal(id) { $(`#${id}`).classList.remove('open'); }
+
+// Close modal on overlay click
+$$('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+let _paymentTarget = null;
+
+function openPaymentModal(debtId, suggestedAmount, label) {
+  _paymentTarget = debtId;
+  $('#modalTitle').textContent = `Pagar: ${label}`;
+  $('#modalAmount').value = suggestedAmount ? suggestedAmount.toFixed(2) : '';
+  $('#modalNote').value = '';
+  openModal('paymentModal');
+  setTimeout(() => $('#modalAmount').focus(), 100);
+}
+
+$('#modalConfirm').addEventListener('click', () => {
+  const amount = parseFloat($('#modalAmount').value);
+  if (!amount || amount <= 0) { showToast('⚠️ Ingresa un monto válido'); return; }
+  const note = $('#modalNote').value.trim();
+  applyPayment(_paymentTarget, amount, note);
+  closeModal('paymentModal');
+});
+
+let _accountTarget = null;
+function openAccountModal(accountId) {
+  _accountTarget = accountId;
+  const acc = STATE.accounts.find(a => a.id === accountId);
+  if (!acc) return;
+  $('#accountModalTitle').textContent = `Actualizar: ${acc.bank}`;
+  $('#accountBalance').value = acc.balance.toFixed(2);
+  $('#accountSaved').value = acc.saved.toFixed(2);
+  openModal('accountModal');
+}
+
+$('#accountConfirm').addEventListener('click', () => {
+  const bal = parseFloat($('#accountBalance').value);
+  const sav = parseFloat($('#accountSaved').value) || 0;
+  if (isNaN(bal)) { showToast('⚠️ Ingresa un saldo válido'); return; }
+  const acc = STATE.accounts.find(a => a.id === _accountTarget);
+  if (acc) { acc.balance = bal; acc.saved = sav; }
+  saveState();
+  closeModal('accountModal');
+  renderAll();
+  showToast('✅ Saldo actualizado');
+});
+
+/* =========================================================
+   PAYMENT LOGIC
+   ========================================================= */
+function applyPayment(debtId, amount, note) {
+  const debt = STATE.debts.find(d => d.id === debtId);
+  if (!debt) return;
+  debt.balance = Math.max(0, debt.balance - amount);
+  if (debt.balance === 0) debt.paid = true;
+
+  // log history
+  STATE.payments.unshift({
+    id: Date.now(),
+    debtId,
+    debtName: debt.name,
+    amount,
+    note,
+    date: new Date().toISOString()
+  });
+
+  saveState();
+  renderAll();
+  showToast(`✅ Pago de ${fmt(amount)} registrado`);
+}
+
+/* =========================================================
+   RENDER DASHBOARD
+   ========================================================= */
+function renderDashboard() {
+  // Header date
+  const now = new Date();
+  $('#headerDate').textContent = now.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+
+  // Totals
+  const totalDebt = STATE.debts.filter(d => !d.paid).reduce((s,d) => s + d.balance, 0);
+  const INITIAL_TOTAL = DEFAULT.debts.reduce((s,d) => s + d.balance, 0);
+  const totalCash = STATE.accounts.reduce((s,a) => s + a.balance, 0);
+  const colchon = 500;
+  const avail = Math.max(0, totalCash - colchon);
+
+  // Freedom %
+  const paidAmount = INITIAL_TOTAL - totalDebt;
+  const pct = Math.min(100, Math.max(0, Math.round((paidAmount / INITIAL_TOTAL) * 100)));
+
+  $('#totalDebt').textContent = fmt(totalDebt);
+  $('#totalCash').textContent = fmt(totalCash);
+  $('#totalAvail').textContent = fmt(avail);
+
+  $('#freedomPct').textContent = `${pct}%`;
+  $('#freedomBar').style.width = `${pct}%`;
+  $('#freedomSub').textContent = `Pagado ${fmt(paidAmount)} de ${fmt(INITIAL_TOTAL)}`;
+
+  // Upcoming in 7 days
+  const upcoming = STATE.debts.filter(d => !d.paid && daysUntil(d.dueDate) <= 7);
+  $('#upcomingCount').textContent = upcoming.length > 0 ? `${upcoming.length} deuda${upcoming.length>1?'s':''}` : 'Ninguno';
+
+  // Alerts
+  const alertsEl = $('#alertsContainer');
+  alertsEl.innerHTML = '';
+  const urgent = STATE.debts.filter(d => !d.paid && daysUntil(d.dueDate) <= 3);
+  const warn   = STATE.debts.filter(d => !d.paid && daysUntil(d.dueDate) > 3 && daysUntil(d.dueDate) <= 7);
+
+  urgent.forEach(d => {
+    const di = daysUntil(d.dueDate);
+    const msg = di < 0 ? `¡${d.name} VENCIDA hace ${Math.abs(di)} días!` :
+                di === 0 ? `¡${d.name} vence HOY!` :
+                `${d.name} vence en ${di} día${di>1?'s':''}`;
+    alertsEl.insertAdjacentHTML('beforeend',
+      `<div class="alert-banner alert-urgent">🚨 ${msg} — ${fmt(d.balance)}</div>`);
+  });
+  warn.forEach(d => {
+    alertsEl.insertAdjacentHTML('beforeend',
+      `<div class="alert-banner alert-warning">⚠️ ${d.name} vence en ${daysUntil(d.dueDate)} días — ${fmt(d.balance)}</div>`);
+  });
+
+  // Upcoming list
+  const upEl = $('#upcomingList');
+  if (upcoming.length === 0) {
+    upEl.innerHTML = `<div class="card"><div class="text-muted fs-13">✅ No hay pagos en los próximos 7 días</div></div>`;
+  } else {
+    upEl.innerHTML = upcoming.map(d => `
+      <div class="card" style="margin-top:6px">
+        <div class="flex-between">
+          <div>
+            <div class="font-bold">${d.name}</div>
+            <div class="text-muted fs-12">${d.bank} · ${urgencyBadge(d.dueDate)}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="font-bold">${fmt(d.balance)}</div>
+            <div class="text-muted fs-12">${fmtDate(d.dueDate)}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // History short
+  renderHistoryEl($('#historyShort'), 4);
+}
+
+/* =========================================================
+   RENDER DEBTS
+   ========================================================= */
+function renderDebts() {
+  const cards  = STATE.debts.filter(d => d.type === 'Tarjeta de Crédito');
+  const loans  = STATE.debts.filter(d => d.type === 'Préstamo');
+
+  $('#cards-list').innerHTML = cards.map(debtCard).join('');
+  $('#loans-list').innerHTML = loans.map(debtCard).join('');
+
+  // Attach listeners
+  STATE.debts.forEach(d => {
+    const btn = $(`#pay-btn-${d.id}`);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const suggested = d.minPayment || d.nextPayment || 0;
+        openPaymentModal(d.id, suggested, d.name);
+      });
+    }
+  });
+}
+
+function debtCard(d) {
+  const urg = d.paid ? 'paid' : urgencyClass(d.dueDate);
+  const pct = d.originalBalance > 0
+    ? Math.round(((d.originalBalance - d.balance) / d.originalBalance) * 100)
+    : 0;
+  const barClass = d.paid ? 'bar-green' : urg === 'urgent' ? 'bar-red' : urg === 'warning' ? 'bar-yellow' : 'bar-blue';
+
+  let extraInfo = '';
+  if (d.type === 'Tarjeta de Crédito') {
+    const used = d.limit > 0 ? Math.round((d.balance / d.limit) * 100) : 0;
+    extraInfo = `
+      <div class="debt-meta">
+        <span>💳 Límite: ${fmt(d.limit)}</span>
+        <span>Usado: ${used}%</span>
+        ${d.noInterestPayment ? `<span>Sin intereses: ${fmt(d.noInterestPayment)}</span>` : ''}
+      </div>`;
+  } else {
+    extraInfo = `
+      <div class="debt-meta">
+        ${d.requested ? `<span>Solicitado: ${fmt(d.requested)}</span>` : ''}
+        ${d.nextPayment ? `<span>Próx. pago: ${fmt(d.nextPayment)}</span>` : ''}
+        ${d.totalPaid ? `<span>Pagado: ${fmt(d.totalPaid)}</span>` : ''}
+        ${d.paymentsMade !== undefined ? `<span>Pago ${d.paymentsMade}/${d.totalPayments}</span>` : ''}
+        ${d.auto ? `<span>🔄 Automático</span>` : ''}
+      </div>`;
+  }
+
+  return `
+    <div class="debt-card ${urg}" id="debt-${d.id}">
+      <div class="debt-card-header">
+        <div>
+          <div class="debt-name">${d.name}</div>
+          <div class="debt-type">${d.bank} · ${d.type}</div>
+        </div>
+        <div style="text-align:right">
+          ${d.paid ? '<span class="badge badge-paid">✅ LIQUIDADA</span>' : urgencyBadge(d.dueDate)}
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${d.dueDate ? fmtDate(d.dueDate) : ''}</div>
+        </div>
+      </div>
+      <div class="debt-amount ${d.paid ? 'text-green' : urg==='urgent' ? 'text-red' : ''}">${fmt(d.balance)}</div>
+      ${extraInfo}
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill ${barClass}" style="width:${pct}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin:4px 0 8px">
+        <span>Pagado ${pct}%</span>
+        <span>Original: ${fmt(d.originalBalance)}</span>
+      </div>
+      <div class="debt-actions">
+        ${d.paid ? '<span class="badge badge-paid" style="padding:6px 12px">✅ Deuda liquidada</span>' : `
+          <button class="btn btn-green btn-sm" id="pay-btn-${d.id}">💸 Registrar pago</button>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   RENDER PLAN
+   ========================================================= */
+function renderPlan() {
+  const todayStr = today();
+  const list = $('#plan-list');
+  list.innerHTML = '';
+
+  STATE.plan.forEach((q, qi) => {
+    const isCurrent = isCurrentQ(q, qi);
+    const allDone = q.payments.every(p => p.done);
+    const div = document.createElement('div');
+    div.className = `q-card${isCurrent ? ' current' : ''}${allDone ? ' done' : ''}`;
+    div.id = `qcard-${q.id}`;
+
+    const completedCount = q.payments.filter(p => p.done).length;
+    const totalCount = q.payments.length;
+
+    div.innerHTML = `
+      <div class="q-card-header" onclick="toggleQCard('${q.id}')">
+        <div>
+          <div class="q-title">${q.label}</div>
+          <div class="q-subtitle">
+            ${isCurrent ? '📍 Quincena actual · ' : ''}${q.dates}
+            ${totalCount > 0 ? ` · ${completedCount}/${totalCount} pagos` : ''}
+          </div>
+        </div>
+        ${isCurrent ? '<span class="badge badge-blue">ACTUAL</span>' : ''}
+        ${allDone ? '<span class="badge badge-green">✅</span>' : ''}
+        <span class="q-chevron">▼</span>
+      </div>
+      <div class="q-body">
+        ${q.rows.map(r => `
+          <div class="q-row">
+            <span class="q-row-label">${r.label}</span>
+            <span class="q-row-amount ${r.type}">
+              ${r.type === 'pos' ? '+' : r.type === 'neg' ? '' : ''}${fmt(Math.abs(r.amount))}
+            </span>
+          </div>
+        `).join('')}
+
+        ${q.payments.length > 0 ? `
+          <div class="q-payments">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:6px;margin-bottom:2px">Pagos de deudas</div>
+            ${q.payments.map(p => `
+              <label class="q-payment-item ${p.done ? 'paid-item' : ''}" for="pay-${p.id}">
+                <input type="checkbox" class="q-payment-check" id="pay-${p.id}"
+                  ${p.done ? 'checked' : ''}
+                  onchange="togglePlanPayment('${q.id}', '${p.id}', this.checked)" />
+                <span class="q-payment-label" style="${p.done ? 'text-decoration:line-through' : ''}">${p.label}</span>
+                <span class="q-payment-amount">${fmt(p.amount)}</span>
+              </label>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <label class="q-checkbox" for="q-done-${q.id}">
+          <input type="checkbox" class="q-check-input" id="q-done-${q.id}"
+            ${allDone ? 'checked' : ''}
+            onchange="markQDone('${q.id}', this.checked)" />
+          <span>Marcar quincena completa</span>
+        </label>
+      </div>
+    `;
+    list.appendChild(div);
+
+    // Auto-open current
+    if (isCurrent) div.classList.add('open');
+  });
+}
+
+function isCurrentQ(q, idx) {
+  // Simple heuristic: first quincena that isn't fully done
+  return STATE.plan.findIndex(p => !p.payments.every(x => x.done)) === idx;
+}
+
+function toggleQCard(id) {
+  const el = $(`#qcard-${id}`);
+  el.classList.toggle('open');
+}
+
+function togglePlanPayment(qId, payId, checked) {
+  const q = STATE.plan.find(q => q.id === qId);
+  if (!q) return;
+  const p = q.payments.find(p => p.id === payId);
+  if (!p) return;
+
+  p.done = checked;
+
+  if (checked) {
+    // Apply to debt balance
+    applyPayment(p.debtId, p.amount, `Plan ${q.label}: ${p.label}`);
+  } else {
+    // Undo: add back to debt
+    const debt = STATE.debts.find(d => d.id === p.debtId);
+    if (debt) {
+      debt.balance = Math.min(debt.originalBalance, debt.balance + p.amount);
+      debt.paid = false;
+      // Remove from history the corresponding auto-entry
+      const histIdx = STATE.payments.findIndex(h => h.note && h.note.startsWith(`Plan ${q.label}: ${p.label}`) && h.debtId === p.debtId);
+      if (histIdx >= 0) STATE.payments.splice(histIdx, 1);
+    }
+    saveState();
+    renderAll();
+    showToast('↩️ Pago desmarcado');
+  }
+}
+
+function markQDone(qId, checked) {
+  const q = STATE.plan.find(q => q.id === qId);
+  if (!q) return;
+  q.payments.forEach(p => {
+    if (p.done !== checked) {
+      p.done = checked;
+      if (checked) {
+        applyPayment(p.debtId, p.amount, `Plan ${q.label}: ${p.label}`);
+      }
+    }
+  });
+  if (!checked) {
+    // Undo all payments for this Q
+    q.payments.forEach(p => {
+      const debt = STATE.debts.find(d => d.id === p.debtId);
+      if (debt) {
+        debt.balance = Math.min(debt.originalBalance, debt.balance + p.amount);
+        debt.paid = false;
+        const histIdx = STATE.payments.findIndex(h => h.note && h.note.startsWith(`Plan ${q.label}:`) && h.debtId === p.debtId);
+        if (histIdx >= 0) STATE.payments.splice(histIdx, 1);
+      }
+    });
+    saveState();
+    renderAll();
+  }
+}
+
+/* =========================================================
+   RENDER ACCOUNTS
+   ========================================================= */
+function renderAccounts() {
+  const list = $('#accounts-list');
+  list.innerHTML = STATE.accounts.map(acc => {
+    const avail = acc.balance - acc.saved;
+    return `
+      <div class="account-card">
+        <div class="account-header">
+          <div>
+            <div class="account-bank">${acc.bank}</div>
+            <div class="account-type">Cuenta ${acc.type}</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openAccountModal('${acc.id}')">✏️ Editar</button>
+        </div>
+        <div class="account-balance-row">
+          <span class="account-balance-label">Saldo total</span>
+          <span class="account-balance-val">${fmt(acc.balance)}</span>
+        </div>
+        <div class="account-aside">
+          <span>🔒 Guardado/Apartado: <strong>${fmt(acc.saved)}</strong></span>
+          <span class="account-available">Disponible: ${fmt(Math.max(0, avail))}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Full history
+  renderHistoryEl($('#historyFull'), 50);
+}
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+function renderHistoryEl(el, limit) {
+  if (!STATE.payments || STATE.payments.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:20px"><div class="emoji">📋</div><p>Aquí aparecerán tus pagos registrados</p></div>`;
+    return;
+  }
+  const items = STATE.payments.slice(0, limit);
+  el.innerHTML = items.map(h => {
+    const d = new Date(h.date);
+    const dateStr = d.toLocaleDateString('es-MX', { day:'2-digit', month:'short' });
+    return `
+      <div class="history-item">
+        <div class="history-dot" style="background:var(--green-light)"></div>
+        <div class="history-info">
+          <div class="history-name">${h.debtName}</div>
+          <div class="history-date">${dateStr}${h.note ? ' · ' + h.note : ''}</div>
+        </div>
+        <div class="history-amount">-${fmt(h.amount)}</div>
+      </div>
+    `;
+  }).join('');
+  if (STATE.payments.length > limit) {
+    el.insertAdjacentHTML('beforeend',
+      `<div class="history-item" style="justify-content:center;color:var(--text-muted);font-size:12px">+${STATE.payments.length - limit} más…</div>`);
+  }
+}
+
+/* =========================================================
+   RENDER ALL
+   ========================================================= */
+function renderAll() {
+  const active = $('.nav-btn.active')?.dataset.page || 'inicio';
+  renderPage(active);
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+loadState();
+renderAll();
+
+// Update header date every minute
+$('#headerDate').textContent = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+
+// Prevent rubber-band scroll on iOS when at edges
+document.body.addEventListener('touchmove', e => {
+  // allow scroll inside .page
+}, { passive: true });
+</script>
+</body>
+</html>
