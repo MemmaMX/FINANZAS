@@ -5,26 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Finanzas</title>
 
-  <meta name="theme-color" content="#0A0A0A" />
+  <meta name="theme-color" content="#FFFFFF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Finanzas" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%230A0A0A'/%3E%3Crect x='18' y='18' width='144' height='144' rx='28' fill='%23F5A623'/%3E%3Cpath d='M52 62h76v16H68v24h52v16H68v34H52z' fill='%230A0A0A'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23FFFFFF'/%3E%3Crect x='18' y='18' width='144' height='144' rx='28' fill='%23FF6B00'/%3E%3Cpath d='M52 62h76v16H68v24h52v16H68v34H52z' fill='%23111111'/%3E%3C/svg%3E" />
   <link rel="manifest" id="manifest-link" />
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0A0A0A;
-      --bg-soft: #111111;
-      --card: #1A1A1A;
-      --border: #2A2A2A;
-      --accent: #F5A623;
-      --text: #FFFFFF;
-      --muted: #AAAAAA;
+      --bg: #FFFFFF;
+      --bg-soft: #F6F6F6;
+      --card: #121212;
+      --border: #2F2F2F;
+      --accent: #FF6B00;
+      --text: #111111;
+      --muted: #6A6A6A;
+      --text-on-dark: #FFFFFF;
+      --text-on-accent: #FFFFFF;
       --danger: #FF3B30;
-      --warn: #F5A623;
+      --warn: #FFB020;
       --ok: #34C759;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -42,16 +44,79 @@
       position: sticky;
       top: 0;
       z-index: 20;
-      background: linear-gradient(180deg, #F5A623, #D88E1C);
-      color: #111;
-      padding: calc(10px + var(--safe-top)) 16px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      color: var(--text);
+      padding: calc(10px + var(--safe-top)) 12px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .banner-text {
       font-size: 13px;
       font-weight: 800;
       letter-spacing: .2px;
-      text-align: center;
+      flex: 1;
+      min-width: 0;
     }
+    .notif-wrap { position: relative; }
+    .notif-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.12);
+      background: var(--bg-soft);
+      color: var(--text);
+      font-size: 18px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .notif-badge {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--text-on-accent);
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .notif-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      width: min(320px, 86vw);
+      background: var(--card);
+      color: var(--text-on-dark);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+      display: none;
+      padding: 10px;
+      z-index: 60;
+    }
+    .notif-panel.open { display: block; }
+    .notif-item { border-bottom: 1px solid rgba(255,255,255,.1); padding: 8px 0; font-size: 12px; }
+    .notif-item:last-child { border-bottom: none; }
     .page { display: none; padding: 10px 12px calc(var(--nav-h) + 10px); }
     .page.active { display: block; }
+    .page.tab-enter {
+      animation: tabBounceIn .55s cubic-bezier(.22,.84,.3,1.12);
+      transform-origin: center top;
+    }
+    @keyframes tabBounceIn {
+      0% { opacity: 0; transform: scale(.96) translateY(12px); }
+      65% { opacity: 1; transform: scale(1.02) translateY(0); }
+      100% { opacity: 1; transform: scale(1); }
+    }
     .section-title {
       margin: 10px 6px 8px;
       color: var(--muted);
@@ -62,6 +127,7 @@
     }
     .card {
       background: var(--card);
+      color: var(--text-on-dark);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 14px;
@@ -73,8 +139,8 @@
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 8px; }
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .kpi {
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.14);
       border-radius: 14px;
       padding: 10px;
     }
@@ -84,7 +150,7 @@
     .kpi .val.ok { color: var(--ok); }
     .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     button {
-      border: 1px solid #3A3A3A;
+      border: 1px solid rgba(0,0,0,.15);
       background: var(--bg-soft);
       color: var(--text);
       border-radius: 14px;
@@ -94,8 +160,8 @@
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn-accent { background: var(--accent); color: #111; border-color: #DA911F; }
-    .btn-outline-accent { border-color: rgba(245,166,35,.45); color: var(--accent); }
+    .btn-accent { background: var(--accent); color: var(--text-on-accent); border-color: var(--accent); }
+    .btn-outline-accent { border-color: rgba(255,107,0,.45); color: var(--accent); background: transparent; }
     .btn-full { width: 100%; }
     .history-list { margin-top: 10px; border-top: 1px solid var(--border); }
     .history-item {
@@ -106,7 +172,7 @@
       border-bottom: 1px solid var(--border);
       font-size: 12px;
     }
-    .bar { height: 7px; background: #252525; border-radius: 99px; overflow: hidden; margin-top: 8px; }
+    .bar { height: 7px; background: rgba(255,255,255,.14); border-radius: 99px; overflow: hidden; margin-top: 8px; }
     .bar > span { display: block; height: 100%; background: var(--accent); width: 0%; }
     .status {
       font-size: 10px;
@@ -125,16 +191,18 @@
       left: 50%; transform: translateX(-50%);
       bottom: 0; z-index: 30;
       width: 100%; max-width: 440px;
-      background: rgba(10,10,10,.98);
-      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-top: 1px solid rgba(0,0,0,0.1);
       padding: 8px 8px calc(8px + var(--safe-bottom));
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
     }
-    .nav-btn { font-size: 11px; color: var(--muted); padding: 10px 6px; border-radius: 12px; border: 1px solid transparent; }
-    .nav-btn.active { color: var(--text); border-color: var(--accent); }
-    .nav-btn.center { background: var(--accent); color: #111; font-size: 12px; font-weight: 800; transform: translateY(-10px); padding: 14px 6px; border-radius: 18px; }
+    .nav-btn { font-size: 11px; color: var(--text); background: rgba(255,255,255,.32); padding: 10px 6px; border-radius: 12px; border: 1px solid transparent; }
+    .nav-btn.active { color: var(--text); border-color: rgba(255,107,0,.55); background: rgba(255,107,0,.12); }
+    .nav-btn.center { background: var(--accent); color: var(--text-on-accent); font-size: 12px; font-weight: 800; transform: translateY(-10px); padding: 14px 6px; border-radius: 18px; }
     .modal-wrap {
       position: fixed; inset: 0; z-index: 40;
       background: rgba(0,0,0,.7);
@@ -144,6 +212,7 @@
     .modal {
       width: 100%; max-width: 440px; margin: 0 auto;
       background: var(--card);
+      color: var(--text-on-dark);
       border: 1px solid var(--border);
       border-bottom: 0;
       border-radius: 22px 22px 0 0;
@@ -156,11 +225,13 @@
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: var(--bg-soft);
-      color: var(--text);
+      background: rgba(255,255,255,.05);
+      color: var(--text-on-dark);
       padding: 10px;
       font-size: 15px;
     }
+    input[type="color"] { padding: 4px; height: 42px; }
+    input[type="file"] { padding: 7px; }
     .plan-header {
       display: flex; justify-content: space-between; align-items: center; gap: 8px;
       margin-bottom: 10px;
@@ -177,6 +248,7 @@
       position: fixed; left: 50%; transform: translateX(-50%);
       bottom: calc(var(--nav-h) + 12px);
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      color: var(--text-on-dark);
       padding: 10px 14px; font-size: 12px; display: none; z-index: 50;
     }
     .toast.show { display: block; }
@@ -207,11 +279,49 @@
     .collapse-body.open {
       max-height: 1500px;
     }
+    .bank-card {
+      position: relative;
+      border-radius: 16px;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
+      background-size: cover;
+      background-position: center;
+    }
+    .bank-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.18));
+      pointer-events: none;
+    }
+    .bank-card > * { position: relative; z-index: 1; }
+    .bank-card .bank-name { font-size: 16px; font-weight: 800; letter-spacing: .3px; }
+    .bank-card .bank-chip { width: 40px; height: 28px; border-radius: 8px; background: rgba(255,255,255,.35); }
+    .bank-card .bank-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+    .edit-inline-grid { display: grid; grid-template-columns: 1fr 110px 38px; gap: 8px; align-items: end; margin-top: 8px; }
+    .btn-mini { width: 38px; height: 38px; border-radius: 10px; padding: 0; }
+    .preview-wrap { margin-top: 10px; }
   </style>
 </head>
 <body>
   <div id="app">
-    <div id="banner" class="banner">Q2 · 27-30 Ago · Disponible para deudas: $0.00</div>
+    <div id="banner" class="banner">
+      <div id="banner-text" class="banner-text">Q2 · 27-30 Ago · Disponible para deudas: $0.00</div>
+      <div class="notif-wrap">
+        <button id="notif-btn" class="notif-btn" type="button" aria-label="Notificaciones" onclick="toggleNotifPanel(event)">🔔<span id="notif-badge" class="notif-badge"></span></button>
+        <div id="notif-panel" class="notif-panel">
+          <div class="headline" style="font-size:13px">Proximos vencimientos</div>
+          <div id="notif-list" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
 
     <section id="tab-cuentas" class="page active">
       <div class="section-title">Cuentas débito</div>
@@ -263,6 +373,9 @@
       <div class="section-title">Editar tarjetas</div>
       <div id="edit-cards"></div>
 
+      <div class="section-title">Editar plan</div>
+      <div id="edit-plan"></div>
+
       <button class="btn-outline-accent btn-full" onclick="openAddAccountModal()">+ Agregar cuenta/banco</button>
     </section>
 
@@ -305,6 +418,13 @@
       <div class="field"><label>Nombre</label><input id="new-account-name" type="text" maxlength="40" placeholder="Banco o cuenta"></div>
       <div class="field"><label>Disponible MXN</label><input id="new-account-available" type="number" inputmode="decimal" placeholder="0.00"></div>
       <div class="field"><label>Guardado MXN</label><input id="new-account-saved" type="number" inputmode="decimal" placeholder="0.00"></div>
+      <div class="field"><label>Color de tarjeta</label><input id="new-account-card-color" type="color" value="#2A2A2A" oninput="updateAddAccountPreview()"></div>
+      <div class="field"><label>Color de texto</label><input id="new-account-text-color" type="color" value="#FFFFFF" oninput="updateAddAccountPreview()"></div>
+      <div class="field"><label>Imagen custom</label><input id="new-account-image" type="file" accept="image/*" onchange="onNewAccountImageChange(this)"></div>
+      <div class="preview-wrap">
+        <div class="muted" style="font-size:11px">Vista previa</div>
+        <div id="new-account-preview"></div>
+      </div>
       <div style="display:flex;gap:8px"><button class="btn-full" onclick="closeModal('modal-add-account')">Cancelar</button><button class="btn-accent btn-full" onclick="addAccount()">Guardar</button></div>
     </div>
   </div>
@@ -317,11 +437,15 @@
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     const STORAGE_KEY = 'finanzas_v6';
     const COLLAPSE_KEY = 'finanzas_collapse_v1';
+    const NOTIF_TS_KEY = 'finanzas_notif_ts';
+    const NOTIF_INTERVAL_MS = 60 * 60 * 1000;
+    const DEFAULT_CARD_COLOR = '#2A2A2A';
+    const DEFAULT_TEXT_COLOR = '#FFFFFF';
 
     const defaults = {
       accounts: [
-        { id: 'acc-santander', name: 'Santander Debito', available: 1.45, saved: 0.12, history: [] },
-        { id: 'acc-bbva', name: 'BBVA', available: 0.98, saved: 1187.00, history: [] }
+        { id: 'acc-santander', name: 'Santander Debito', available: 1.45, saved: 0.12, history: [], cardColor: '#CC0000', textColor: '#FFFFFF', cardImage: '' },
+        { id: 'acc-bbva', name: 'BBVA', available: 0.98, saved: 1187.00, history: [], cardColor: '#004B9B', textColor: '#FFFFFF', cardImage: '' }
       ],
       cards: [
         { id: 'card-likeu-1', name: 'Santander TDC LikeU 1', bank: 'Santander', limit: 7000.00, spent: 6966.00, minPayment: 360.30, noInterestPayment: 6242.20, dueDate: '2026-07-24' },
@@ -465,7 +589,12 @@
         if (raw) {
           const data = JSON.parse(raw);
           if (!data.accounts || !data.cards || !data.debts || !data.plan) return clone(defaults);
-          data.accounts.forEach(a => { if (!Array.isArray(a.history)) a.history = []; });
+          data.accounts.forEach(a => {
+            if (!Array.isArray(a.history)) a.history = [];
+            if (!a.cardColor) a.cardColor = defaultCardColorForAccount(a);
+            if (!a.textColor) a.textColor = DEFAULT_TEXT_COLOR;
+            if (!('cardImage' in a)) a.cardImage = '';
+          });
           return data;
         }
       } catch(_) {}
@@ -492,6 +621,45 @@
     const chevronSVG = `<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
     function money(n){ return '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._id); toast._id = setTimeout(() => t.classList.remove('show'), 2200); }
+    function defaultCardColorForAccount(account){
+      const id = String(account.id || '').toLowerCase();
+      const name = String(account.name || '').toLowerCase();
+      if (id.includes('santander') || name.includes('santander')) return '#CC0000';
+      if (id.includes('bbva') || name.includes('bbva')) return '#004B9B';
+      return DEFAULT_CARD_COLOR;
+    }
+    function getAccountTheme(account){
+      return {
+        cardColor: account.cardColor || defaultCardColorForAccount(account),
+        textColor: account.textColor || DEFAULT_TEXT_COLOR,
+        cardImage: account.cardImage || ''
+      };
+    }
+    function accountLastDigits(account){
+      const raw = String(account.id || '').replace(/\D/g, '');
+      return (raw.slice(-4) || '2026').padStart(4, '0');
+    }
+    function accountCardPreviewHTML(account, available){
+      const theme = getAccountTheme(account);
+      const bg = theme.cardImage
+        ? `linear-gradient(135deg, rgba(0,0,0,.2), rgba(0,0,0,.35)), url('${theme.cardImage}') center/cover`
+        : theme.cardColor;
+      return `
+        <div class="bank-card" style="background:${bg};color:${theme.textColor}">
+          <div class="bank-row">
+            <div class="bank-name">${account.name}</div>
+            <div>Debito</div>
+          </div>
+          <div class="bank-chip"></div>
+          <div>
+            <div style="font-size:14px;letter-spacing:2px;font-weight:700">**** **** **** ${accountLastDigits(account)}</div>
+            <div class="bank-row" style="margin-top:6px">
+              <span>Disponible</span>
+              <strong>${money(available)}</strong>
+            </div>
+          </div>
+        </div>`;
+    }
 
     function getCurrentDebtTotal(){
       const loanDebt = state.debts.reduce((s, d) => s + (Number(d.balance) || 0), 0);
@@ -560,7 +728,42 @@
     function renderBanner(){
       recalcPlanDerived();
       const q = activePlan();
-      $('#banner').textContent = `${q.label} · ${q.range} · Disponible para deudas: ${money(q.remainingInQ)}`;
+      $('#banner-text').textContent = `${q.label} · ${q.range} · Disponible para deudas: ${money(q.remainingInQ)}`;
+      renderNotificationPanel();
+    }
+
+    function getDueDebtAlerts(){
+      return state.debts
+        .map(d => ({ debt: d, st: statusByDate(d.dueDate) }))
+        .filter(x => x.st.cls === 'red' || x.st.cls === 'yellow');
+    }
+
+    function renderNotificationPanel(){
+      const due = getDueDebtAlerts();
+      const badge = $('#notif-badge');
+      badge.textContent = due.length > 9 ? '9+' : String(due.length);
+      badge.style.display = due.length ? 'flex' : 'none';
+      $('#notif-list').innerHTML = due.length
+        ? due.map(x => `<div class="notif-item"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${x.debt.name}</strong><span class="status ${x.st.cls}">${x.st.text}</span></div><div class="muted" style="margin-top:4px">Vence ${formatDate(x.debt.dueDate)} · saldo ${money(x.debt.balance)}</div></div>`).join('')
+        : '<div class="muted" style="font-size:12px;padding:8px 0">Sin deudas proximas.</div>';
+    }
+
+    function toggleNotifPanel(ev){
+      if (ev) ev.stopPropagation();
+      $('#notif-panel').classList.toggle('open');
+    }
+
+    function closeNotifPanel(){
+      $('#notif-panel').classList.remove('open');
+    }
+
+    function shouldAutoNotify(){
+      const last = Number(localStorage.getItem(NOTIF_TS_KEY) || 0);
+      return !last || (Date.now() - last) >= NOTIF_INTERVAL_MS;
+    }
+
+    function markAutoNotified(){
+      localStorage.setItem(NOTIF_TS_KEY, String(Date.now()));
     }
 
     function statusByDate(date){
@@ -575,6 +778,9 @@
     function renderAccounts(){
       const el = $('#accounts');
       el.innerHTML = state.accounts.map(a => {
+        if (!a.cardColor) a.cardColor = defaultCardColorForAccount(a);
+        if (!a.textColor) a.textColor = DEFAULT_TEXT_COLOR;
+        if (!('cardImage' in a)) a.cardImage = '';
         const total = (Number(a.available) || 0) + (Number(a.saved) || 0);
         const cid = 'acc-collapse-' + a.id;
         const open = isOpen(cid, false);
@@ -593,6 +799,7 @@
               ${chevronSVG}
             </div>
             <div class="collapse-body ${open ? 'open' : ''}">
+              ${accountCardPreviewHTML(a, a.available)}
               <div class="grid-3" style="margin-top:10px">
                 <div class="kpi"><div class="label">Total</div><div class="val">${money(total)}</div></div>
                 <div class="kpi"><div class="label">Disponible</div><div class="val accent">${money(a.available)}</div></div>
@@ -697,10 +904,7 @@
             </div>
             <div class="collapse-body ${open ? 'open' : ''}">
               <div class="plan-header" style="margin-top:10px">
-                <div style="width:150px">
-                  <label class="muted" style="font-size:11px">Ingreso editable</label>
-                  <input type="number" inputmode="decimal" value="${Number(q.income).toFixed(2)}" onchange="updateIncome('${q.id}', this.value)">
-                </div>
+                <div class="muted" style="font-size:12px">Ingreso esperado: <strong style="color:var(--text-on-dark)">${money(q.income)}</strong></div>
               </div>
               <div class="plan-items">
                 ${q.fixed.map(f => `<div class="plan-item"><span>${f.label}</span><strong>- ${money(f.amount)}</strong></div>`).join('')}
@@ -708,11 +912,11 @@
                 <div class="plan-item"><span>Saldo acumulado proyectado</span><strong>${money(q.carryOut)}</strong></div>
               </div>
               ${q.payments.map(p => `
-                <label class="pay-item">
-                  <input type="checkbox" ${p.done ? 'checked' : ''} onchange="togglePlanPayment('${q.id}','${p.id}', this.checked)">
+                <div class="pay-item">
                   <span style="flex:1">${p.label}</span>
                   <strong>${money(p.amount)}</strong>
-                </label>
+                  <span class="status ${p.done ? 'green' : 'yellow'}">${p.done ? 'hecho' : 'pendiente'}</span>
+                </div>
               `).join('')}
             </div>
           </div>`;
@@ -738,6 +942,7 @@
       }).join('');
 
       $('#edit-accounts').innerHTML = state.accounts.map(a => {
+        const theme = getAccountTheme(a);
         const cid = 'edit-acc-collapse-' + a.id;
         const open = isOpen(cid, false);
         return `
@@ -749,6 +954,10 @@
             <div class="collapse-body ${open ? 'open' : ''}">
               <div class="field" style="margin-top:10px"><label>Disponible</label><input type="number" value="${Number(a.available).toFixed(2)}" onchange="editAccount('${a.id}','available',this.value)"></div>
               <div class="field"><label>Guardado</label><input type="number" value="${Number(a.saved).toFixed(2)}" onchange="editAccount('${a.id}','saved',this.value)"></div>
+              <div class="field"><label>Color de tarjeta</label><input type="color" value="${theme.cardColor}" onchange="editAccount('${a.id}','cardColor',this.value)"></div>
+              <div class="field"><label>Color de texto</label><input type="color" value="${theme.textColor}" onchange="editAccount('${a.id}','textColor',this.value)"></div>
+              <div class="field"><label>Imagen custom</label><input type="file" accept="image/*" onchange="onEditAccountImageChange('${a.id}', this)"></div>
+              <div>${accountCardPreviewHTML(a, a.available)}</div>
             </div>
           </div>`;
       }).join('');
@@ -767,6 +976,44 @@
               <div class="field"><label>Gastado</label><input type="number" value="${Number(c.spent).toFixed(2)}" onchange="editCard('${c.id}','spent',this.value)"></div>
               <div class="field"><label>Pago minimo</label><input type="number" value="${Number(c.minPayment).toFixed(2)}" onchange="editCard('${c.id}','minPayment',this.value)"></div>
               <div class="field"><label>Fecha de corte/pago (2026)</label><input type="date" value="${c.dueDate}" onchange="editCard('${c.id}','dueDate',this.value)"></div>
+            </div>
+          </div>`;
+      }).join('');
+      renderEditPlan();
+    }
+
+    function renderEditPlan(){
+      $('#edit-plan').innerHTML = state.plan.map(q => {
+        const cid = 'edit-plan-collapse-' + q.id;
+        const open = isOpen(cid, false);
+        return `
+          <div class="card">
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div class="headline" style="font-size:14px">${q.label} · ${q.range}</div>
+              ${chevronSVG}
+            </div>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="field" style="margin-top:10px"><label>Ingreso esperado</label><input type="number" inputmode="decimal" value="${Number(q.income).toFixed(2)}" onchange="updateIncome('${q.id}', this.value)"></div>
+              <div class="section-title" style="margin:0 0 4px">Gastos fijos</div>
+              ${q.fixed.map((f, idx) => `
+                <div class="edit-inline-grid">
+                  <input type="text" value="${f.label.replace(/"/g, '&quot;')}" onchange="editPlanFixed('${q.id}', ${idx}, 'label', this.value)">
+                  <input type="number" inputmode="decimal" value="${Number(f.amount).toFixed(2)}" onchange="editPlanFixed('${q.id}', ${idx}, 'amount', this.value)">
+                  <button class="btn-mini" type="button" onclick="removePlanFixed('${q.id}', ${idx})">✕</button>
+                </div>
+              `).join('')}
+              <button style="margin-top:8px" type="button" onclick="addPlanFixed('${q.id}')">+ Agregar fijo</button>
+              <div class="section-title" style="margin:12px 0 4px">Pagos a deudas</div>
+              ${q.payments.map(p => `
+                <div class="card" style="padding:10px;margin-top:8px">
+                  <div class="field"><label>Label</label><input type="text" value="${p.label.replace(/"/g, '&quot;')}" onchange="editPlanPayment('${q.id}','${p.id}','label', this.value)"></div>
+                  <div class="field"><label>Monto</label><input type="number" inputmode="decimal" value="${Number(p.amount).toFixed(2)}" onchange="editPlanPayment('${q.id}','${p.id}','amount', this.value)"></div>
+                  <div class="field"><label>Destino</label><select onchange="editPlanPayment('${q.id}','${p.id}','debtId', this.value)">${buildDebtOptions(p.debtId)}</select></div>
+                  <label class="pay-item" style="margin-top:0"><input type="checkbox" ${p.done ? 'checked' : ''} onchange="togglePlanPayment('${q.id}','${p.id}', this.checked)"><span style="flex:1">Pago realizado</span></label>
+                  <button type="button" onclick="removePlanPayment('${q.id}','${p.id}')">Eliminar pago</button>
+                </div>
+              `).join('')}
+              <button style="margin-top:8px" type="button" onclick="addPlanPayment('${q.id}')">+ Agregar pago</button>
             </div>
           </div>`;
       }).join('');
@@ -879,6 +1126,63 @@
       refresh();
     }
 
+    function buildDebtOptions(selectedId){
+      const debtOptions = state.debts.map(d => ({ id: d.id, name: d.name, type: 'debt' }));
+      const cardOptions = state.cards.map(c => ({ id: c.id, name: c.name, type: 'card' }));
+      return [...debtOptions, ...cardOptions]
+        .map(x => `<option value="${x.id}" ${x.id === selectedId ? 'selected' : ''}>${x.type === 'debt' ? 'Deuda' : 'TDC'} · ${x.name}</option>`)
+        .join('');
+    }
+
+    function editPlanFixed(qId, idx, key, value){
+      const q = state.plan.find(x => x.id === qId);
+      if (!q || !q.fixed[idx]) return;
+      q.fixed[idx][key] = key === 'amount' ? Math.max(0, Number(value) || 0) : String(value || '').trim();
+      refresh();
+    }
+
+    function addPlanFixed(qId){
+      const q = state.plan.find(x => x.id === qId);
+      if (!q) return;
+      q.fixed.push({ label: 'Nuevo gasto fijo', amount: 0 });
+      refresh();
+    }
+
+    function removePlanFixed(qId, idx){
+      const q = state.plan.find(x => x.id === qId);
+      if (!q || !q.fixed[idx]) return;
+      q.fixed.splice(idx, 1);
+      refresh();
+    }
+
+    function editPlanPayment(qId, payId, key, value){
+      const q = state.plan.find(x => x.id === qId);
+      if (!q) return;
+      const p = q.payments.find(x => x.id === payId);
+      if (!p) return;
+      p[key] = key === 'amount' ? Math.max(0, Number(value) || 0) : String(value || '').trim();
+      refresh();
+    }
+
+    function addPlanPayment(qId){
+      const q = state.plan.find(x => x.id === qId);
+      if (!q) return;
+      const target = state.debts[0]?.id || state.cards[0]?.id || '';
+      q.payments.push({ id: uid(), label: 'Nuevo pago', amount: 0, debtId: target, done: false });
+      refresh();
+    }
+
+    function removePlanPayment(qId, payId){
+      const q = state.plan.find(x => x.id === qId);
+      if (!q) return;
+      const idx = q.payments.findIndex(x => x.id === payId);
+      if (idx < 0) return;
+      const p = q.payments[idx];
+      if (p.done) revertDebtPayment(p.debtId, p.amount);
+      q.payments.splice(idx, 1);
+      refresh();
+    }
+
     function editDebt(id, key, value){
       const d = state.debts.find(x => x.id === id); if (!d) return;
       if (key === 'dueDate') {
@@ -892,7 +1196,11 @@
     }
     function editAccount(id, key, value){
       const a = state.accounts.find(x => x.id === id); if (!a) return;
-      a[key] = Math.max(0, Number(value) || 0);
+      if (key === 'cardColor' || key === 'textColor' || key === 'cardImage') {
+        a[key] = value || '';
+      } else {
+        a[key] = Math.max(0, Number(value) || 0);
+      }
       refresh();
     }
     function editCard(id, key, value){
@@ -927,18 +1235,67 @@
       }
     }
 
+    const addAccountDraft = { cardImage: '' };
+    function fileToBase64(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    function updateAddAccountPreview(){
+      const account = {
+        id: 'preview',
+        name: $('#new-account-name').value.trim() || 'Nueva cuenta',
+        cardColor: $('#new-account-card-color').value || DEFAULT_CARD_COLOR,
+        textColor: $('#new-account-text-color').value || DEFAULT_TEXT_COLOR,
+        cardImage: addAccountDraft.cardImage || ''
+      };
+      const available = Math.max(0, Number($('#new-account-available').value) || 0);
+      $('#new-account-preview').innerHTML = accountCardPreviewHTML(account, available);
+    }
+    function onNewAccountImageChange(input){
+      const file = input.files && input.files[0];
+      if (!file) {
+        addAccountDraft.cardImage = '';
+        updateAddAccountPreview();
+        return;
+      }
+      fileToBase64(file)
+        .then(base64 => {
+          addAccountDraft.cardImage = base64;
+          updateAddAccountPreview();
+        })
+        .catch(() => toast('No se pudo leer imagen'));
+    }
+    function onEditAccountImageChange(accountId, input){
+      const file = input.files && input.files[0];
+      if (!file) return;
+      fileToBase64(file)
+        .then(base64 => editAccount(accountId, 'cardImage', base64))
+        .catch(() => toast('No se pudo leer imagen'));
+    }
+
     function openAddAccountModal(){
       $('#new-account-name').value = '';
       $('#new-account-available').value = '';
       $('#new-account-saved').value = '';
+      $('#new-account-card-color').value = DEFAULT_CARD_COLOR;
+      $('#new-account-text-color').value = DEFAULT_TEXT_COLOR;
+      $('#new-account-image').value = '';
+      addAccountDraft.cardImage = '';
+      updateAddAccountPreview();
       openModal('modal-add-account');
     }
     function addAccount(){
       const name = $('#new-account-name').value.trim();
       const available = Math.max(0, Number($('#new-account-available').value) || 0);
       const saved = Math.max(0, Number($('#new-account-saved').value) || 0);
+      const cardColor = $('#new-account-card-color').value || DEFAULT_CARD_COLOR;
+      const textColor = $('#new-account-text-color').value || DEFAULT_TEXT_COLOR;
       if (!name) return toast('Escribe el nombre');
-      state.accounts.push({ id: uid(), name, available, saved, history: [] });
+      state.accounts.push({ id: uid(), name, available, saved, history: [], cardColor, textColor, cardImage: addAccountDraft.cardImage || '' });
       closeModal('modal-add-account');
       refresh();
     }
@@ -952,24 +1309,24 @@
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
           toast('Notificaciones activadas');
-          notifyDueDebts();
+          notifyDueDebts(true);
         } else {
           toast('Permiso no otorgado');
         }
       });
     }
 
-    function notifyDueDebts(){
+    function notifyDueDebts(force){
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      state.debts.forEach(d => {
-        const st = statusByDate(d.dueDate);
-        if (st.cls === 'red' || st.cls === 'yellow') {
-          new Notification('Vencimiento de deuda', {
-            body: `${d.name} · ${formatDate(d.dueDate)} · saldo ${money(d.balance)}`,
-            tag: `due-${d.id}`
-          });
-        }
+      if (!force && !shouldAutoNotify()) return;
+      const due = getDueDebtAlerts();
+      due.forEach(x => {
+        new Notification('Vencimiento de deuda', {
+          body: `${x.debt.name} · ${formatDate(x.debt.dueDate)} · saldo ${money(x.debt.balance)}`,
+          tag: `due-${x.debt.id}`
+        });
       });
+      if (due.length) markAutoNotified();
     }
 
     function installPWA(){
@@ -978,10 +1335,10 @@
         short_name: 'Finanzas',
         start_url: './',
         display: 'standalone',
-        background_color: '#0A0A0A',
-        theme_color: '#0A0A0A',
+        background_color: '#FFFFFF',
+        theme_color: '#FFFFFF',
         icons: [{
-          src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%230A0A0A'/%3E%3Crect x='20' y='20' width='152' height='152' rx='26' fill='%23F5A623'/%3E%3Cpath d='M56 64h84v18H74v24h56v18H74v36H56z' fill='%230A0A0A'/%3E%3C/svg%3E",
+          src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%23FFFFFF'/%3E%3Crect x='20' y='20' width='152' height='152' rx='26' fill='%23FF6B00'/%3E%3Cpath d='M56 64h84v18H74v24h56v18H74v36H56z' fill='%23111111'/%3E%3C/svg%3E",
           sizes: '192x192',
           type: 'image/svg+xml'
         }]
@@ -1000,15 +1357,27 @@
         const tab = btn.dataset.tab;
         $$('.page').forEach(p => p.classList.remove('active'));
         $$('.nav-btn').forEach(n => n.classList.remove('active'));
-        $('#tab-' + tab).classList.add('active');
+        const page = $('#tab-' + tab);
+        page.classList.add('active', 'tab-enter');
+        page.addEventListener('animationend', () => page.classList.remove('tab-enter'), { once: true });
         btn.classList.add('active');
+        closeNotifPanel();
       }));
     }
 
     installPWA();
     setupNav();
     refresh();
-    setTimeout(notifyDueDebts, 1500);
+    document.addEventListener('click', e => {
+      const panel = $('#notif-panel');
+      const btn = $('#notif-btn');
+      if (!panel.contains(e.target) && !btn.contains(e.target)) closeNotifPanel();
+    });
+    ['new-account-name', 'new-account-available', 'new-account-saved'].forEach(id => {
+      const input = $('#' + id);
+      if (input) input.addEventListener('input', updateAddAccountPreview);
+    });
+    setTimeout(() => notifyDueDebts(false), 1200);
   </script>
 </body>
 </html>
