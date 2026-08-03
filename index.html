@@ -180,6 +180,33 @@
       padding: 10px 14px; font-size: 12px; display: none; z-index: 50;
     }
     .toast.show { display: block; }
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      gap: 8px;
+    }
+    .collapsible-header .chevron {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: var(--muted);
+      transition: transform 0.25s ease;
+    }
+    .collapsible-header.open .chevron {
+      transform: rotate(180deg);
+    }
+    .collapse-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease;
+    }
+    .collapse-body.open {
+      max-height: 1500px;
+    }
   </style>
 </head>
 <body>
@@ -289,6 +316,7 @@
     const $$ = (s, p=document) => [...p.querySelectorAll(s)];
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     const STORAGE_KEY = 'finanzas_v6';
+    const COLLAPSE_KEY = 'finanzas_collapse_v1';
 
     const defaults = {
       accounts: [
@@ -427,6 +455,7 @@
     };
 
     let state = loadState();
+    let collapseState = loadCollapseState();
     state.initialDebtTotal = state.initialDebtTotal || getCurrentDebtTotal();
 
     function clone(v){ return JSON.parse(JSON.stringify(v)); }
@@ -443,6 +472,24 @@
       return clone(defaults);
     }
     function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function loadCollapseState(){
+      try { const raw = localStorage.getItem(COLLAPSE_KEY); if (raw) return JSON.parse(raw); } catch(_) {}
+      return {};
+    }
+    function saveCollapseState(){ localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapseState)); }
+    function isOpen(id, defaultOpen){ return (id in collapseState) ? collapseState[id] : defaultOpen; }
+    function toggleCollapse(id){
+      const header = document.querySelector('.collapsible-header[data-collapse="' + id + '"]');
+      if (!header) return;
+      const body = header.nextElementSibling;
+      if (!body) return;
+      const nowOpen = !header.classList.contains('open');
+      collapseState[id] = nowOpen;
+      saveCollapseState();
+      header.classList.toggle('open', nowOpen);
+      body.classList.toggle('open', nowOpen);
+    }
+    const chevronSVG = `<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
     function money(n){ return '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._id); toast._id = setTimeout(() => t.classList.remove('show'), 2200); }
 
@@ -529,6 +576,8 @@
       const el = $('#accounts');
       el.innerHTML = state.accounts.map(a => {
         const total = (Number(a.available) || 0) + (Number(a.saved) || 0);
+        const cid = 'acc-collapse-' + a.id;
+        const open = isOpen(cid, false);
         const history = (a.history || []).slice(0, 8).map(h => `
           <div class="history-item">
             <div><div>${h.note || h.type}</div><div class="muted" style="font-size:11px">${new Date(h.date).toLocaleDateString('es-MX')}</div></div>
@@ -536,19 +585,27 @@
           </div>`).join('') || '<div class="muted" style="font-size:12px;padding-top:10px">Sin movimientos</div>';
         return `
           <div class="card">
-            <div class="headline">${a.name}</div>
-            <div class="grid-3">
-              <div class="kpi"><div class="label">Total</div><div class="val">${money(total)}</div></div>
-              <div class="kpi"><div class="label">Disponible</div><div class="val accent">${money(a.available)}</div></div>
-              <div class="kpi"><div class="label">Guardado</div><div class="val ok">${money(a.saved)}</div></div>
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div>
+                <div class="headline">${a.name}</div>
+                <div class="muted" style="font-size:12px;margin-top:2px">Total: ${money(total)}</div>
+              </div>
+              ${chevronSVG}
             </div>
-            <div class="btn-row">
-              <button onclick="openMovementModal('${a.id}','ingreso')">+ Ingreso</button>
-              <button onclick="openMovementModal('${a.id}','gasto')">+ Gasto</button>
-              <button onclick="openTransferModal('${a.id}','deposit')">Depositar al guardado</button>
-              <button onclick="openTransferModal('${a.id}','withdraw')">Retirar del guardado</button>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="grid-3" style="margin-top:10px">
+                <div class="kpi"><div class="label">Total</div><div class="val">${money(total)}</div></div>
+                <div class="kpi"><div class="label">Disponible</div><div class="val accent">${money(a.available)}</div></div>
+                <div class="kpi"><div class="label">Guardado</div><div class="val ok">${money(a.saved)}</div></div>
+              </div>
+              <div class="btn-row">
+                <button onclick="openMovementModal('${a.id}','ingreso')">+ Ingreso</button>
+                <button onclick="openMovementModal('${a.id}','gasto')">+ Gasto</button>
+                <button onclick="openTransferModal('${a.id}','deposit')">Depositar al guardado</button>
+                <button onclick="openTransferModal('${a.id}','withdraw')">Retirar del guardado</button>
+              </div>
+              <div class="history-list">${history}</div>
             </div>
-            <div class="history-list">${history}</div>
           </div>`;
       }).join('');
     }
@@ -557,18 +614,28 @@
       $('#cards').innerHTML = state.cards.map(c => {
         const available = Math.max(0, c.limit - c.spent);
         const used = c.limit > 0 ? Math.min(100, (c.spent / c.limit) * 100) : 0;
+        const cid = 'card-collapse-' + c.id;
+        const open = isOpen(cid, false);
         return `
           <div class="card">
-            <div class="headline">${c.name}</div>
-            <div class="grid-2" style="margin-top:10px">
-              <div class="kpi"><div class="label">Limite</div><div class="val">${money(c.limit)}</div></div>
-              <div class="kpi"><div class="label">Gastado</div><div class="val">${money(c.spent)}</div></div>
-              <div class="kpi"><div class="label">Disponible</div><div class="val accent">${money(available)}</div></div>
-              <div class="kpi"><div class="label">Pago minimo</div><div class="val">${money(c.minPayment)}</div></div>
-              <div class="kpi"><div class="label">Pago sin intereses</div><div class="val">${money(c.noInterestPayment)}</div></div>
-              <div class="kpi"><div class="label">Vence</div><div class="val" style="font-size:15px">${formatDate(c.dueDate)}</div></div>
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div>
+                <div class="headline">${c.name}</div>
+                <div class="muted" style="font-size:12px;margin-top:2px">Gastado: ${money(c.spent)}</div>
+              </div>
+              ${chevronSVG}
             </div>
-            <div class="bar"><span style="width:${used}%"></span></div>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="grid-2" style="margin-top:10px">
+                <div class="kpi"><div class="label">Limite</div><div class="val">${money(c.limit)}</div></div>
+                <div class="kpi"><div class="label">Gastado</div><div class="val">${money(c.spent)}</div></div>
+                <div class="kpi"><div class="label">Disponible</div><div class="val accent">${money(available)}</div></div>
+                <div class="kpi"><div class="label">Pago minimo</div><div class="val">${money(c.minPayment)}</div></div>
+                <div class="kpi"><div class="label">Pago sin intereses</div><div class="val">${money(c.noInterestPayment)}</div></div>
+                <div class="kpi"><div class="label">Vence</div><div class="val" style="font-size:15px">${formatDate(c.dueDate)}</div></div>
+              </div>
+              <div class="bar"><span style="width:${used}%"></span></div>
+            </div>
           </div>`;
       }).join('');
     }
@@ -579,22 +646,29 @@
         const progress = d.originalBalance > 0 ? Math.min(100, ((d.originalBalance - d.balance) / d.originalBalance) * 100) : 0;
         const kueskiLine = d.id === 'debt-kueski' ? `<div class="muted" style="font-size:12px;margin-top:4px">Pagos: ${d.paymentsMade} de ${d.totalPayments} realizados</div>` : '';
         const santanderNote = d.id === 'debt-santander' ? `<div class="card" style="padding:10px;margin:10px 0 0;font-size:12px">${d.note}</div>` : '';
+        const cid = 'debt-collapse-' + d.id;
+        const open = isOpen(cid, false);
         return `
           <div class="card">
-            <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
-              <div>
-                <div class="headline">${d.name}</div>
-                <div class="muted" style="font-size:12px;margin-top:4px">Saldo: ${money(d.balance)}</div>
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div style="display:flex;align-items:flex-start;gap:8px;flex:1">
+                <div>
+                  <div class="headline">${d.name}</div>
+                  <div class="muted" style="font-size:12px;margin-top:2px">Saldo: ${money(d.balance)}</div>
+                </div>
+                <span class="status ${st.cls}">${st.text}</span>
               </div>
-              <span class="status ${st.cls}">${st.text}</span>
+              ${chevronSVG}
             </div>
-            ${d.quota ? `<div class="muted" style="font-size:12px;margin-top:6px">Cuota: ${money(d.quota)}</div>` : ''}
-            <div class="muted" style="font-size:12px;margin-top:4px">Proximo pago: ${formatDate(d.dueDate)}</div>
-            ${d.totalPaid ? `<div class="muted" style="font-size:12px;margin-top:4px">Ya pagado: ${money(d.totalPaid)}</div>` : ''}
-            ${kueskiLine}
-            ${santanderNote}
-            <div class="bar"><span style="width:${progress}%"></span></div>
-            <button style="margin-top:10px" onclick="openDebtPaymentModal('${d.id}','${d.name}', ${Number(d.quota || 0)})">Registrar pago</button>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              ${d.quota ? `<div class="muted" style="font-size:12px;margin-top:6px">Cuota: ${money(d.quota)}</div>` : ''}
+              <div class="muted" style="font-size:12px;margin-top:4px">Proximo pago: ${formatDate(d.dueDate)}</div>
+              ${d.totalPaid ? `<div class="muted" style="font-size:12px;margin-top:4px">Ya pagado: ${money(d.totalPaid)}</div>` : ''}
+              ${kueskiLine}
+              ${santanderNote}
+              <div class="bar"><span style="width:${progress}%"></span></div>
+              <button style="margin-top:10px" onclick="openDebtPaymentModal('${d.id}','${d.name}', ${Number(d.quota || 0)})">Registrar pago</button>
+            </div>
           </div>`;
       }).join('');
     }
@@ -608,61 +682,94 @@
       $('#progress-meta').textContent = `${money(totalDebt)} pendientes`;
       $('#progress-bar').style.width = `${pct}%`;
 
-      $('#plan').innerHTML = state.plan.map(q => `
-        <div class="card">
-          <div class="plan-header">
-            <div>
-              <div class="headline">${q.label} · ${q.range}</div>
-              <div class="muted" style="font-size:12px">Disponible para deudas: ${money(q.availableForDebts)}</div>
+      const activeQ = activePlan();
+      $('#plan').innerHTML = state.plan.map(q => {
+        const cid = 'plan-collapse-' + q.id;
+        const open = isOpen(cid, q.id === activeQ.id);
+        return `
+          <div class="card">
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div>
+                <div class="headline">${q.label} · ${q.range}</div>
+                <div class="muted" style="font-size:12px;margin-top:2px">Disponible para deudas: ${money(q.availableForDebts)}</div>
+              </div>
+              ${chevronSVG}
             </div>
-            <div style="width:150px">
-              <label class="muted" style="font-size:11px">Ingreso editable</label>
-              <input type="number" inputmode="decimal" value="${Number(q.income).toFixed(2)}" onchange="updateIncome('${q.id}', this.value)">
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="plan-header" style="margin-top:10px">
+                <div style="width:150px">
+                  <label class="muted" style="font-size:11px">Ingreso editable</label>
+                  <input type="number" inputmode="decimal" value="${Number(q.income).toFixed(2)}" onchange="updateIncome('${q.id}', this.value)">
+                </div>
+              </div>
+              <div class="plan-items">
+                ${q.fixed.map(f => `<div class="plan-item"><span>${f.label}</span><strong>- ${money(f.amount)}</strong></div>`).join('')}
+                <div class="plan-item"><span>Total programado pagos</span><strong>- ${money(q.plannedTotal)}</strong></div>
+                <div class="plan-item"><span>Saldo acumulado proyectado</span><strong>${money(q.carryOut)}</strong></div>
+              </div>
+              ${q.payments.map(p => `
+                <label class="pay-item">
+                  <input type="checkbox" ${p.done ? 'checked' : ''} onchange="togglePlanPayment('${q.id}','${p.id}', this.checked)">
+                  <span style="flex:1">${p.label}</span>
+                  <strong>${money(p.amount)}</strong>
+                </label>
+              `).join('')}
             </div>
-          </div>
-          <div class="plan-items">
-            ${q.fixed.map(f => `<div class="plan-item"><span>${f.label}</span><strong>- ${money(f.amount)}</strong></div>`).join('')}
-            <div class="plan-item"><span>Total programado pagos</span><strong>- ${money(q.plannedTotal)}</strong></div>
-            <div class="plan-item"><span>Saldo acumulado proyectado</span><strong>${money(q.carryOut)}</strong></div>
-          </div>
-          ${q.payments.map(p => `
-            <label class="pay-item">
-              <input type="checkbox" ${p.done ? 'checked' : ''} onchange="togglePlanPayment('${q.id}','${p.id}', this.checked)">
-              <span style="flex:1">${p.label}</span>
-              <strong>${money(p.amount)}</strong>
-            </label>
-          `).join('')}
-        </div>
-      `).join('');
+          </div>`;
+      }).join('');
     }
 
     function renderEdit(){
-      $('#edit-debts').innerHTML = state.debts.map(d => `
-        <div class="card">
-          <div class="headline" style="font-size:14px">${d.name}</div>
-          <div class="field"><label>Saldo</label><input type="number" value="${Number(d.balance).toFixed(2)}" onchange="editDebt('${d.id}','balance',this.value)"></div>
-          <div class="field"><label>Fecha pago (2026)</label><input type="date" value="${d.dueDate}" onchange="editDebt('${d.id}','dueDate',this.value)"></div>
-          <div class="field"><label>Cuota</label><input type="number" value="${Number(d.quota || 0).toFixed(2)}" onchange="editDebt('${d.id}','quota',this.value)"></div>
-        </div>
-      `).join('');
+      $('#edit-debts').innerHTML = state.debts.map(d => {
+        const cid = 'edit-debt-collapse-' + d.id;
+        const open = isOpen(cid, false);
+        return `
+          <div class="card">
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div class="headline" style="font-size:14px">${d.name}</div>
+              ${chevronSVG}
+            </div>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="field" style="margin-top:10px"><label>Saldo</label><input type="number" value="${Number(d.balance).toFixed(2)}" onchange="editDebt('${d.id}','balance',this.value)"></div>
+              <div class="field"><label>Fecha pago (2026)</label><input type="date" value="${d.dueDate}" onchange="editDebt('${d.id}','dueDate',this.value)"></div>
+              <div class="field"><label>Cuota</label><input type="number" value="${Number(d.quota || 0).toFixed(2)}" onchange="editDebt('${d.id}','quota',this.value)"></div>
+            </div>
+          </div>`;
+      }).join('');
 
-      $('#edit-accounts').innerHTML = state.accounts.map(a => `
-        <div class="card">
-          <div class="headline" style="font-size:14px">${a.name}</div>
-          <div class="field"><label>Disponible</label><input type="number" value="${Number(a.available).toFixed(2)}" onchange="editAccount('${a.id}','available',this.value)"></div>
-          <div class="field"><label>Guardado</label><input type="number" value="${Number(a.saved).toFixed(2)}" onchange="editAccount('${a.id}','saved',this.value)"></div>
-        </div>
-      `).join('');
+      $('#edit-accounts').innerHTML = state.accounts.map(a => {
+        const cid = 'edit-acc-collapse-' + a.id;
+        const open = isOpen(cid, false);
+        return `
+          <div class="card">
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div class="headline" style="font-size:14px">${a.name}</div>
+              ${chevronSVG}
+            </div>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="field" style="margin-top:10px"><label>Disponible</label><input type="number" value="${Number(a.available).toFixed(2)}" onchange="editAccount('${a.id}','available',this.value)"></div>
+              <div class="field"><label>Guardado</label><input type="number" value="${Number(a.saved).toFixed(2)}" onchange="editAccount('${a.id}','saved',this.value)"></div>
+            </div>
+          </div>`;
+      }).join('');
 
-      $('#edit-cards').innerHTML = state.cards.map(c => `
-        <div class="card">
-          <div class="headline" style="font-size:14px">${c.name}</div>
-          <div class="field"><label>Limite</label><input type="number" value="${Number(c.limit).toFixed(2)}" onchange="editCard('${c.id}','limit',this.value)"></div>
-          <div class="field"><label>Gastado</label><input type="number" value="${Number(c.spent).toFixed(2)}" onchange="editCard('${c.id}','spent',this.value)"></div>
-          <div class="field"><label>Pago minimo</label><input type="number" value="${Number(c.minPayment).toFixed(2)}" onchange="editCard('${c.id}','minPayment',this.value)"></div>
-          <div class="field"><label>Fecha de corte/pago (2026)</label><input type="date" value="${c.dueDate}" onchange="editCard('${c.id}','dueDate',this.value)"></div>
-        </div>
-      `).join('');
+      $('#edit-cards').innerHTML = state.cards.map(c => {
+        const cid = 'edit-card-collapse-' + c.id;
+        const open = isOpen(cid, false);
+        return `
+          <div class="card">
+            <div class="collapsible-header ${open ? 'open' : ''}" data-collapse="${cid}" onclick="toggleCollapse('${cid}')">
+              <div class="headline" style="font-size:14px">${c.name}</div>
+              ${chevronSVG}
+            </div>
+            <div class="collapse-body ${open ? 'open' : ''}">
+              <div class="field" style="margin-top:10px"><label>Limite</label><input type="number" value="${Number(c.limit).toFixed(2)}" onchange="editCard('${c.id}','limit',this.value)"></div>
+              <div class="field"><label>Gastado</label><input type="number" value="${Number(c.spent).toFixed(2)}" onchange="editCard('${c.id}','spent',this.value)"></div>
+              <div class="field"><label>Pago minimo</label><input type="number" value="${Number(c.minPayment).toFixed(2)}" onchange="editCard('${c.id}','minPayment',this.value)"></div>
+              <div class="field"><label>Fecha de corte/pago (2026)</label><input type="date" value="${c.dueDate}" onchange="editCard('${c.id}','dueDate',this.value)"></div>
+            </div>
+          </div>`;
+      }).join('');
     }
 
     function formatDate(v){
