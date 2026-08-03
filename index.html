@@ -981,17 +981,23 @@ let STATE;
 const STORAGE_KEY = 'finanzas_v3';
 
 function migrateDatesTo2026(state) {
+  let changed = false;
+
   state.debts?.forEach(debt => {
     if (typeof debt.dueDate === 'string' && debt.dueDate.slice(0, 4) !== '2026') {
       debt.dueDate = `2026${debt.dueDate.slice(4)}`;
+      changed = true;
     }
   });
 
   state.plan?.forEach(item => {
     if (typeof item.dates === 'string' && !item.dates.endsWith('/2026')) {
       item.dates = `${item.dates.slice(0, -4)}2026`;
+      changed = true;
     }
   });
+
+  return changed;
 }
 
 function loadState() {
@@ -1001,7 +1007,7 @@ function loadState() {
       STATE = JSON.parse(raw);
       // Merge new fields if missing (in case of version bumps)
       if (!STATE.payments) STATE.payments = [];
-      migrateDatesTo2026(STATE);
+      if (migrateDatesTo2026(STATE)) saveState();
     } else {
       STATE = JSON.parse(JSON.stringify(DEFAULT));
     }
