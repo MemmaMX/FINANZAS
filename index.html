@@ -316,7 +316,7 @@
       left: 50%;
       transform: translateX(-50%);
       bottom: 0;
-      z-index: 35;
+      z-index: 100;
       width: 100%;
       max-width: 440px;
       background: rgba(255,255,255,0.75);
@@ -327,8 +327,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      position: fixed;
-      overflow: hidden;
+      pointer-events: auto;
     }
     .nav-indicator {
       position: absolute;
@@ -354,6 +353,8 @@
       box-shadow: none;
       font-size: 12px;
       font-weight: 700;
+      pointer-events: auto;
+      cursor: pointer;
     }
     .nav-btn.active { color: var(--text); }
     .nav-btn::after {
