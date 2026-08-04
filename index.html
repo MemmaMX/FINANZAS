@@ -573,35 +573,6 @@
     .preview-wrap { margin-top: 10px; }
     .appearance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .helper { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
-    .splash {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background: linear-gradient(180deg, #FFFFFF 0%, var(--bg) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity .35s ease, visibility .35s ease;
-    }
-    .splash.done { opacity: 0; visibility: hidden; }
-    .splash-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      color: var(--text);
-    }
-    .wallet-mark {
-      width: 84px;
-      height: 84px;
-      border-radius: 28px;
-      background: var(--accent);
-      display: grid;
-      place-items: center;
-      box-shadow: 0 18px 42px rgba(var(--accent-rgb), 0.24);
-    }
-    .wallet-mark svg { width: 46px; height: 46px; fill: none; stroke: #FFFFFF; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
-    .splash-text { font-size: 14px; font-weight: 700; color: var(--muted); }
     @supports not (backdrop-filter: blur(1px)) {
       .bottom-nav, .topbar, .modal-wrap { background: rgba(255,255,255,.96); }
     }
@@ -622,16 +593,6 @@
   </style>
 </head>
 <body>
-  <div id="splash" class="splash">
-    <div class="splash-card">
-      <div class="wallet-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H16a2 2 0 0 1 2 2v1.5" /><path d="M4 9.5h13.5A2.5 2.5 0 0 1 20 12v3.5A2.5 2.5 0 0 1 17.5 18H6.5A2.5 2.5 0 0 1 4 15.5v-6Z" /><circle cx="16" cy="13.75" r=".75" fill="#FFFFFF" stroke="none" /></svg>
-      </div>
-      <div class="hello" style="font-size:24px">Finanzas</div>
-      <div class="splash-text">Verificando acceso…</div>
-    </div>
-  </div>
-
   <div id="app">
     <header class="topbar">
       <div class="topbar-row">
@@ -776,7 +737,6 @@
     const COLLAPSE_KEY = 'finanzas_collapse_v1';
     const NOTIF_TS_KEY = 'finanzas_notif_ts';
     const DISMISSED_NOTIFS_KEY = 'finanzas_dismissed_notifs';
-    const BIOMETRIC_KEY = 'finanzas_biometric_registered';
     const THEME_KEY = 'finanzas_theme';
     const NOTIF_INTERVAL_MS = 60 * 60 * 1000;
     const DEFAULT_CARD_COLOR = '#C9981A';
@@ -2078,50 +2038,6 @@
       setActiveNav(currentTab);
     }
 
-    async function tryBiometricAuth() {
-      const splash = $('#splash');
-      const finish = () => {
-        splash.classList.add('done');
-        setTimeout(() => splash.remove(), 380);
-      };
-      try {
-        if (navigator.credentials && typeof navigator.credentials.get === 'function') {
-          const controller = 'AbortController' in window ? new AbortController() : null;
-          const timeoutId = setTimeout(() => controller && controller.abort(), 1400);
-          let credential = null;
-          if (window.PublicKeyCredential) {
-            try {
-              credential = await navigator.credentials.get({
-                mediation: 'optional',
-                publicKey: {
-                  challenge: new Uint8Array([9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 11, 22, 33, 44, 55, 66]),
-                  timeout: 1200,
-                  userVerification: 'preferred',
-                  allowCredentials: []
-                },
-                signal: controller ? controller.signal : undefined
-              });
-            } catch (_) {}
-          }
-          if (!credential) {
-            try {
-              credential = await navigator.credentials.get({ mediation: 'optional', signal: controller ? controller.signal : undefined });
-            } catch (_) {}
-          }
-          clearTimeout(timeoutId);
-          if (credential) localStorage.setItem(BIOMETRIC_KEY, 'true');
-        } else if (typeof window.authenticate === 'function') {
-          try {
-            const ok = await window.authenticate();
-            if (ok) localStorage.setItem(BIOMETRIC_KEY, 'true');
-          } catch (_) {}
-        }
-      } catch (_) {
-      } finally {
-        finish();
-      }
-    }
-
     syncNotificationCycle();
     installPWA();
     refresh();
@@ -2137,7 +2053,6 @@
       if (input) input.addEventListener('input', updateAddAccountPreview);
     });
     setTimeout(autoOpenNotifications, 650);
-    tryBiometricAuth();
   </script>
 </body>
 </html>
