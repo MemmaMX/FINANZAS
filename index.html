@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Finanzas</title>
   <meta name="theme-color" content="#FAFAF8" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -26,6 +26,7 @@
       --warn: #C9981A;
       --ok: #3A9E5F;
       --text-on-accent: #FFFFFF;
+      --global-chip-color: #C9981A;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --nav-h: calc(82px + var(--safe-bottom));
@@ -34,12 +35,26 @@
       --shadow-soft: 0 14px 40px rgba(52, 40, 12, 0.08);
       --accent-rgb: 201, 152, 26;
     }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0F0F0F;
+        --bg-soft: #1A1A1A;
+        --card: #1E1E1E;
+        --border: #2E2E2E;
+        --text: #F0F0F0;
+        --muted: #888880;
+      }
+    }
     html, body { height: 100%; background: var(--bg); }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
       color: var(--text);
       -webkit-font-smoothing: antialiased;
-      background: linear-gradient(180deg, #FFFFFF 0%, var(--bg) 28%, var(--bg) 100%);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 72%, #FFFFFF 28%) 0%, var(--bg) 28%, var(--bg) 100%);
+      transition: background .3s ease, color .3s ease;
+    }
+    body.keyboard-active .bottom-nav {
+      transform: translateX(-50%);
     }
     button, input, select { font: inherit; }
     button {
@@ -281,6 +296,7 @@
       background: linear-gradient(90deg, var(--accent), rgba(var(--accent-rgb), 0.72));
       width: 0%;
       border-radius: inherit;
+      transition: width .35s var(--ease-soft);
     }
     .status {
       font-size: 10px;
@@ -361,13 +377,25 @@
       position: fixed;
       inset: 0;
       z-index: 80;
+      background: rgba(26, 22, 15, 0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      display: flex;
+      align-items: flex-end;
+      transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, opacity 0.3s ease, background 0.3s ease, visibility 0s linear 0.3s;
+    }
+    .modal-wrap.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
       background: rgba(26, 22, 15, 0.35);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      display: none;
-      align-items: flex-end;
+      transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, opacity 0.3s ease, background 0.3s ease;
     }
-    .modal-wrap.open { display: flex; }
     .modal {
       width: 100%;
       max-width: 440px;
@@ -377,7 +405,16 @@
       border-top: 1px solid rgba(0,0,0,.06);
       border-radius: 26px 26px 0 0;
       padding: 18px 14px calc(18px + var(--safe-bottom));
-      animation: modalRise .34s var(--ease-soft);
+      transform: translateY(18px);
+      opacity: 0;
+      transition: transform .3s var(--ease-soft), opacity .3s ease, padding-bottom .3s ease;
+    }
+    .modal-wrap.open .modal {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .modal-wrap.input-engaged .modal {
+      padding-bottom: calc(42px + var(--safe-bottom));
     }
     @keyframes modalRise {
       0% { opacity: 0; transform: translateY(22px); }
@@ -385,6 +422,23 @@
     }
     .modal h3 { margin-bottom: 12px; font-size: 18px; }
     .field { margin-bottom: 10px; }
+    .fade-text {
+      transition: opacity .24s ease;
+    }
+    .bank-card-number button {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      font: inherit;
+      letter-spacing: inherit;
+      color: inherit;
+      opacity: 1;
+      transition: opacity .24s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
     .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
     .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .plan-header {
@@ -504,6 +558,9 @@
     }
     .bank-balance-label { opacity: .78; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
     .bank-balance-value { font-size: 18px; font-weight: 800; }
+    .bank-chip {
+      color: var(--global-chip-color);
+    }
     .bank-chip svg { width: 40px; height: 30px; display: block; }
     .edit-inline-grid {
       display: grid;
@@ -547,6 +604,20 @@
     .splash-text { font-size: 14px; font-weight: 700; color: var(--muted); }
     @supports not (backdrop-filter: blur(1px)) {
       .bottom-nav, .topbar, .modal-wrap { background: rgba(255,255,255,.96); }
+    }
+    @media (prefers-color-scheme: dark) {
+      .topbar, .notif-panel, .notif-btn, .modal, .pay-item {
+        background: rgba(24,24,24,.92);
+        color: var(--text);
+        border-color: rgba(255,255,255,.08);
+      }
+      .notif-badge { box-shadow: 0 0 0 3px rgba(24,24,24,.92); }
+      .bottom-nav {
+        background: rgba(18,18,18,.78);
+        border-top-color: rgba(255,255,255,.08);
+      }
+      input, select { background: #151515; color: var(--text); }
+      .modal { background: var(--card); }
     }
   </style>
 </head>
@@ -710,16 +781,16 @@
     const NOTIF_INTERVAL_MS = 60 * 60 * 1000;
     const DEFAULT_CARD_COLOR = '#C9981A';
     const DEFAULT_TEXT_COLOR = '#FFFFFF';
-    const DEFAULT_THEME = { bg: '#FAFAF8', accent: '#C9981A' };
+    const DEFAULT_THEME = { bg: '#FAFAF8', accent: '#C9981A', chipColor: '#C9981A' };
 
     const defaults = {
       accounts: [
-        { id: 'acc-santander', name: 'Santander Debito', available: 1.45, saved: 0.12, history: [], cardColor: '#C8102E', textColor: '#FFFFFF', cardNumber: '0000', cardImage: '' },
-        { id: 'acc-bbva', name: 'BBVA', available: 0.98, saved: 1187.00, history: [], cardColor: '#004B9B', textColor: '#FFFFFF', cardNumber: '0000', cardImage: '' }
+        { id: 'acc-santander', name: 'Santander Debito', available: 1.45, saved: 0.12, history: [], cardColor: '#C8102E', textColor: '#FFFFFF', chipColor: '#C9981A', cardNumber: '', cardImage: '' },
+        { id: 'acc-bbva', name: 'BBVA', available: 0.98, saved: 1187.00, history: [], cardColor: '#004B9B', textColor: '#FFFFFF', chipColor: '#C9981A', cardNumber: '', cardImage: '' }
       ],
       cards: [
-        { id: 'card-likeu-1', name: 'Santander TDC LikeU 1', bank: 'Santander', limit: 7000.00, spent: 6966.00, minPayment: 360.30, noInterestPayment: 6242.20, dueDate: '2026-07-24' },
-        { id: 'card-likeu-2', name: 'Santander TDC LikeU 2', bank: 'Santander', limit: 7500.00, spent: 7466.87, minPayment: 0.00, noInterestPayment: 7392.87, dueDate: '2026-07-30' }
+        { id: 'card-likeu-1', name: 'LikeU', bank: 'Santander', limit: 7000.00, spent: 6966.00, minPayment: 360.30, noInterestPayment: 6242.20, dueDate: '2026-07-24', cardColor: '#1A1A2E', textColor: '#FFFFFF', chipColor: '#C9981A', cardNumber: '', cardImage: '' },
+        { id: 'card-likeu-2', name: 'LikeU Aeromexico', bank: 'Santander', limit: 7500.00, spent: 7466.87, minPayment: 0.00, noInterestPayment: 7392.87, dueDate: '2026-07-30', cardColor: '#0066CC', textColor: '#FFFFFF', chipColor: '#C9981A', cardNumber: '', cardImage: '' }
       ],
       debts: [
         { id: 'debt-santander', name: 'Prestamo Santander', balance: 29068.55, originalBalance: 29068.55, dueDate: '2026-08-15', quota: 1333.77, totalPaid: 1337.00, note: 'Diferido 18 meses - cobro automatico quincenal', type: 'loan', paymentsMade: 0, totalPayments: 0 },
@@ -874,7 +945,18 @@
       return `${d}/${m}/${y}`;
     }
     function sanitizeCardNumber(value) {
-      return String(value || '').replace(/\D/g, '').slice(0, 4).padStart(4, '0');
+      return String(value || '').replace(/\D/g, '').slice(0, 19);
+    }
+    function maskCardNumber(value) {
+      const digits = sanitizeCardNumber(value);
+      if (!digits) return '•••• •••• •••• XXXX';
+      const last4 = digits.slice(-4).padStart(4, 'X');
+      return `•••• •••• •••• ${last4}`;
+    }
+    function formatCardNumber(value) {
+      const digits = sanitizeCardNumber(value);
+      if (!digits) return '•••• •••• •••• XXXX';
+      return digits.replace(/(.{4})/g, '$1 ').trim();
     }
     function walletIconSVG(bg = '#C9981A') {
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="${bg}"/><path fill="#fff" d="M44 62c0-8.8 7.2-16 16-16h60c8.8 0 16 7.2 16 16v10h8c11 0 20 9 20 20v38c0 11-9 20-20 20H60c-8.8 0-16-7.2-16-16V62Zm16 10h60V62H60v10Zm0 18v44h84c2.2 0 4-1.8 4-4V92c0-2.2-1.8-4-4-4H60Zm74 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z"/></svg>`;
@@ -889,11 +971,24 @@
       if (id.includes('bbva') || name.includes('bbva')) return '#004B9B';
       return DEFAULT_CARD_COLOR;
     }
+    function defaultChipColorForItem(item) {
+      return item && item.chipColor ? item.chipColor : (currentTheme.chipColor || DEFAULT_THEME.chipColor);
+    }
     function defaultVisualSettingsForAccount(account) {
       return {
         cardColor: defaultCardColorForAccount(account),
         textColor: DEFAULT_TEXT_COLOR,
-        cardNumber: '0000',
+        chipColor: currentTheme.chipColor || DEFAULT_THEME.chipColor,
+        cardNumber: '',
+        cardImage: ''
+      };
+    }
+    function defaultVisualSettingsForCard(card) {
+      return {
+        cardColor: card.id === 'card-likeu-2' ? '#0066CC' : '#1A1A2E',
+        textColor: '#FFFFFF',
+        chipColor: currentTheme.chipColor || DEFAULT_THEME.chipColor,
+        cardNumber: '',
         cardImage: ''
       };
     }
@@ -901,7 +996,8 @@
       const theme = readJSON(THEME_KEY, DEFAULT_THEME);
       return {
         bg: theme && theme.bg ? theme.bg : DEFAULT_THEME.bg,
-        accent: theme && theme.accent ? theme.accent : DEFAULT_THEME.accent
+        accent: theme && theme.accent ? theme.accent : DEFAULT_THEME.accent,
+        chipColor: theme && theme.chipColor ? theme.chipColor : DEFAULT_THEME.chipColor
       };
     }
     function hexToRgb(hex) {
@@ -916,6 +1012,7 @@
       root.style.setProperty('--bg', theme.bg || DEFAULT_THEME.bg);
       root.style.setProperty('--accent', theme.accent || DEFAULT_THEME.accent);
       root.style.setProperty('--accent-rgb', hexToRgb(theme.accent || DEFAULT_THEME.accent));
+      root.style.setProperty('--global-chip-color', theme.chipColor || DEFAULT_THEME.chipColor);
       const themeMeta = $('meta[name="theme-color"]');
       if (themeMeta) themeMeta.setAttribute('content', theme.bg || DEFAULT_THEME.bg);
       const icon = walletIconDataURI(theme.accent || DEFAULT_THEME.accent);
@@ -938,9 +1035,21 @@
           const visual = defaultVisualSettingsForAccount(account);
           if (!account.cardColor) account.cardColor = visual.cardColor;
           if (!account.textColor) account.textColor = visual.textColor;
+          if (!account.chipColor) account.chipColor = visual.chipColor;
           if (!('cardImage' in account)) account.cardImage = visual.cardImage;
-          if (!account.cardNumber) account.cardNumber = visual.cardNumber;
+          if (!('cardNumber' in account)) account.cardNumber = visual.cardNumber;
           account.cardNumber = sanitizeCardNumber(account.cardNumber);
+        });
+        data.cards.forEach(card => {
+          const visual = defaultVisualSettingsForCard(card);
+          if (!card.cardColor) card.cardColor = visual.cardColor;
+          if (!card.textColor) card.textColor = visual.textColor;
+          if (!card.chipColor) card.chipColor = visual.chipColor;
+          if (!('cardImage' in card)) card.cardImage = visual.cardImage;
+          if (!('cardNumber' in card)) card.cardNumber = visual.cardNumber;
+          card.cardNumber = sanitizeCardNumber(card.cardNumber);
+          if (card.id === 'card-likeu-1') card.name = 'LikeU';
+          if (card.id === 'card-likeu-2') card.name = 'LikeU Aeromexico';
         });
         return data;
       } catch (_) {
@@ -982,6 +1091,7 @@
     const movementCtx = { accountId: null, type: null };
     const transferCtx = { accountId: null, type: null };
     const debtCtx = { id: null };
+    const creditCtx = { id: null, type: null };
     const navOrder = ['cuentas', 'deudas', 'plan', 'editar'];
     let currentTab = 'cuentas';
     let navInteracted = false;
@@ -1002,8 +1112,19 @@
       return {
         cardColor: account.cardColor || defaultCardColorForAccount(account),
         textColor: account.textColor || DEFAULT_TEXT_COLOR,
+        chipColor: account.chipColor || currentTheme.chipColor || DEFAULT_THEME.chipColor,
         cardImage: account.cardImage || '',
-        cardNumber: sanitizeCardNumber(account.cardNumber || '0000')
+        cardNumber: sanitizeCardNumber(account.cardNumber || '')
+      };
+    }
+    function getCardTheme(card) {
+      const visual = defaultVisualSettingsForCard(card);
+      return {
+        cardColor: card.cardColor || visual.cardColor,
+        textColor: card.textColor || visual.textColor,
+        chipColor: card.chipColor || visual.chipColor,
+        cardImage: card.cardImage || '',
+        cardNumber: sanitizeCardNumber(card.cardNumber || '')
       };
     }
     function accountCardPreviewHTML(account, available) {
@@ -1018,9 +1139,9 @@
               <div class="bank-card-name">${escapeHTML(account.name)}</div>
               <div class="bank-card-type">Débito</div>
             </div>
-            <div class="bank-chip">${chipSVG}</div>
+            <div class="bank-chip" style="color:${theme.chipColor}">${chipSVG.replace(/rgba\(255,255,255,.24\)/g, 'currentColor').replace(/rgba\(255,255,255,.48\)/g, 'rgba(255,255,255,.48)').replace(/rgba\(255,255,255,.55\)/g, 'rgba(255,255,255,.55)')} </div>
           </div>
-          <div class="bank-card-middle bank-card-number">•••• •••• •••• ${theme.cardNumber}</div>
+          <div class="bank-card-middle bank-card-number"><button type="button" class="fade-text" onclick="toggleCardNumberVisibility(this)" data-full="${escapeHTML(formatCardNumber(theme.cardNumber))}" data-masked="${escapeHTML(maskCardNumber(theme.cardNumber))}" data-visible="false">${escapeHTML(maskCardNumber(theme.cardNumber))}</button></div>
           <div class="bank-card-bottom">
             <div class="bank-card-type">Cuenta personal</div>
             <div style="text-align:right">
@@ -1250,6 +1371,30 @@
           </div>`;
       }).join('');
     }
+    function creditCardPreviewHTML(card) {
+      const theme = getCardTheme(card);
+      const background = theme.cardImage
+        ? `linear-gradient(135deg, rgba(0,0,0,.18), rgba(0,0,0,.32)), url('${theme.cardImage}') center/cover`
+        : theme.cardColor;
+      return `
+        <div class="bank-card ${theme.cardImage ? 'with-image' : ''}" style="background:${background};color:${theme.textColor}">
+          <div class="bank-card-top">
+            <div>
+              <div class="bank-card-name">${escapeHTML(card.name)}</div>
+              <div class="bank-card-type">Crédito</div>
+            </div>
+            <div class="bank-chip" style="color:${theme.chipColor}">${chipSVG.replace(/rgba\(255,255,255,.24\)/g, 'currentColor')}</div>
+          </div>
+          <div class="bank-card-middle bank-card-number"><button type="button" class="fade-text" onclick="toggleCardNumberVisibility(this)" data-full="${escapeHTML(formatCardNumber(theme.cardNumber))}" data-masked="${escapeHTML(maskCardNumber(theme.cardNumber))}" data-visible="false">${escapeHTML(maskCardNumber(theme.cardNumber))}</button></div>
+          <div class="bank-card-bottom">
+            <div class="bank-card-type">${escapeHTML(card.bank || 'Crédito')}</div>
+            <div style="text-align:right">
+              <div class="bank-balance-label">Gastado / Límite</div>
+              <div class="bank-balance-value">${money(card.spent)} / ${money(card.limit)}</div>
+            </div>
+          </div>
+        </div>`;
+    }
     function renderCards() {
       $('#cards').innerHTML = state.cards.map(card => {
         const available = Math.max(0, card.limit - card.spent);
@@ -1266,6 +1411,7 @@
               ${chevronSVG}
             </div>
             <div class="collapse-body ${open ? 'open' : ''}">
+              ${creditCardPreviewHTML(card)}
               <div class="grid-2" style="margin-top:10px">
                 <div class="kpi"><div class="label">Límite</div><div class="val">${money(card.limit)}</div></div>
                 <div class="kpi"><div class="label">Gastado</div><div class="val">${money(card.spent)}</div></div>
@@ -1275,6 +1421,10 @@
                 <div class="kpi"><div class="label">Vence</div><div class="val" style="font-size:15px">${formatDate(card.dueDate)}</div></div>
               </div>
               <div class="bar"><span style="width:${used}%"></span></div>
+              <div class="btn-row">
+                <button onclick="openCreditActionModal('${card.id}','abonar')">Abonar</button>
+                <button onclick="openCreditActionModal('${card.id}','gastar')">Gastar</button>
+              </div>
             </div>
           </div>`;
       }).join('');
@@ -1282,7 +1432,8 @@
     function renderDebts() {
       $('#debts').innerHTML = state.debts.map(debt => {
         const st = statusByDate(debt.dueDate);
-        const progress = debt.originalBalance > 0 ? Math.min(100, ((debt.originalBalance - debt.balance) / debt.originalBalance) * 100) : 0;
+        const progress = debtProgress;
+        const debtProgress = debt.id === 'debt-kueski' && debt.totalPayments ? Math.min(100, ((Number(debt.paymentsMade) || 0) / Number(debt.totalPayments)) * 100) : (debt.originalBalance > 0 ? Math.min(100, ((debt.originalBalance - debt.balance) / debt.originalBalance) * 100) : 0);
         const kueskiLine = debt.id === 'debt-kueski' ? `<div class="muted" style="font-size:12px;margin-top:4px">Pagos: ${debt.paymentsMade} de ${debt.totalPayments} realizados</div>` : '';
         const santanderNote = debt.id === 'debt-santander' ? `<div class="card" style="padding:10px;margin:10px 0 0;font-size:12px;background:var(--bg-soft)">${escapeHTML(debt.note)}</div>` : '';
         const cid = 'debt-collapse-' + debt.id;
@@ -1352,9 +1503,10 @@
     function renderEditAppearance() {
       $('#edit-appearance').innerHTML = `
         <div class="card">
-          <div class="appearance-grid">
+          <div class="appearance-grid" style="grid-template-columns:repeat(3,1fr)">
             <div class="field"><label>Color de fondo</label><input type="color" value="${escapeHTML(currentTheme.bg)}" onchange="updateThemeColor('bg', this.value)"></div>
             <div class="field"><label>Color de acento</label><input type="color" value="${escapeHTML(currentTheme.accent)}" onchange="updateThemeColor('accent', this.value)"></div>
+            <div class="field"><label>Color global de chips</label><input type="color" value="${escapeHTML(currentTheme.chipColor)}" onchange="updateThemeColor('chipColor', this.value)"></div>
           </div>
           <div class="helper">Los cambios aplican en tiempo real y se guardan solo como apariencia.</div>
         </div>`;
@@ -1392,11 +1544,12 @@
               <div class="field" style="margin-top:10px"><label>Nombre</label><input type="text" value="${escapeHTML(account.name)}" onchange="editAccount('${account.id}','name',this.value)"></div>
               <div class="field"><label>Disponible</label><input type="number" value="${Number(account.available).toFixed(2)}" onchange="editAccount('${account.id}','available',this.value)"></div>
               <div class="field"><label>Guardado</label><input type="number" value="${Number(account.saved).toFixed(2)}" onchange="editAccount('${account.id}','saved',this.value)"></div>
-              <div class="color-grid">
+              <div class="color-grid" style="grid-template-columns:repeat(3,1fr)">
                 <div class="field"><label>Color de tarjeta</label><input type="color" value="${escapeHTML(theme.cardColor)}" onchange="editAccount('${account.id}','cardColor',this.value)"></div>
                 <div class="field"><label>Color de texto</label><input type="color" value="${escapeHTML(theme.textColor)}" onchange="editAccount('${account.id}','textColor',this.value)"></div>
+                <div class="field"><label>Color de chips</label><input type="color" value="${escapeHTML(theme.chipColor)}" onchange="editAccount('${account.id}','chipColor',this.value)"></div>
               </div>
-              <div class="field"><label>Últimos 4 dígitos</label><input type="text" inputmode="numeric" maxlength="4" value="${escapeHTML(theme.cardNumber)}" oninput="onCardNumberInput(this)" onchange="editAccount('${account.id}','cardNumber',this.value)"></div>
+              <div class="field"><label>Número completo</label><input type="text" inputmode="numeric" maxlength="19" value="${escapeHTML(theme.cardNumber)}" oninput="onCardNumberInput(this)" onchange="editAccount('${account.id}','cardNumber',this.value)"></div>
               <div class="field"><label>Imagen custom</label><input type="file" accept="image/*" onchange="onEditAccountImageChange('${account.id}', this)"></div>
               ${theme.cardImage ? `<button type="button" class="btn-full" onclick="removeAccountImage('${account.id}')">Remover foto</button>` : ''}
               <div>${accountCardPreviewHTML(account, account.available)}</div>
@@ -1405,6 +1558,7 @@
       }).join('');
 
       $('#edit-cards').innerHTML = state.cards.map(card => {
+        const theme = getCardTheme(card);
         const cid = 'edit-card-collapse-' + card.id;
         const open = isOpen(cid, false);
         return `
@@ -1419,6 +1573,15 @@
               <div class="field"><label>Gastado</label><input type="number" value="${Number(card.spent).toFixed(2)}" onchange="editCard('${card.id}','spent',this.value)"></div>
               <div class="field"><label>Pago mínimo</label><input type="number" value="${Number(card.minPayment).toFixed(2)}" onchange="editCard('${card.id}','minPayment',this.value)"></div>
               <div class="field"><label>Fecha de corte/pago (2026)</label><input type="date" value="${card.dueDate}" onchange="editCard('${card.id}','dueDate',this.value)"></div>
+              <div class="color-grid" style="grid-template-columns:repeat(3,1fr)">
+                <div class="field"><label>Color de tarjeta</label><input type="color" value="${escapeHTML(theme.cardColor)}" onchange="editCard('${card.id}','cardColor',this.value)"></div>
+                <div class="field"><label>Color de texto</label><input type="color" value="${escapeHTML(theme.textColor)}" onchange="editCard('${card.id}','textColor',this.value)"></div>
+                <div class="field"><label>Color de chips</label><input type="color" value="${escapeHTML(theme.chipColor)}" onchange="editCard('${card.id}','chipColor',this.value)"></div>
+              </div>
+              <div class="field"><label>Número completo</label><input type="text" inputmode="numeric" maxlength="19" value="${escapeHTML(theme.cardNumber)}" oninput="onCardNumberInput(this)" onchange="editCard('${card.id}','cardNumber',this.value)"></div>
+              <div class="field"><label>Imagen custom</label><input type="file" accept="image/*" onchange="onEditCardImageChange('${card.id}', this)"></div>
+              ${theme.cardImage ? `<button type="button" class="btn-full" onclick="removeCardImage('${card.id}')">Remover foto</button>` : ''}
+              <div>${creditCardPreviewHTML(card)}</div>
             </div>
           </div>`;
       }).join('');
@@ -1522,7 +1685,17 @@
       closeModal('modal-transfer');
       refresh();
     }
+    function openCreditActionModal(cardId, type) {
+      creditCtx.id = cardId;
+      creditCtx.type = type;
+      debtCtx.id = null;
+      $('#payment-title').textContent = type === 'abonar' ? 'Abonar a tarjeta' : 'Gastar con tarjeta';
+      $('#payment-amount').value = '';
+      openModal('modal-payment');
+    }
     function openDebtPaymentModal(id, name, suggested) {
+      creditCtx.id = null;
+      creditCtx.type = null;
       debtCtx.id = id;
       $('#payment-title').textContent = `Registrar pago: ${name}`;
       $('#payment-amount').value = Number(suggested || 0).toFixed(2);
@@ -1531,7 +1704,17 @@
     function confirmDebtPayment() {
       const amount = Math.max(0, Number($('#payment-amount').value) || 0);
       if (!amount) return toast('Monto inválido');
-      applyDebtPayment(debtCtx.id, amount, 'manual-payment');
+      if (creditCtx.id && creditCtx.type) {
+        const card = state.cards.find(item => item.id === creditCtx.id);
+        if (!card) return;
+        card.spent = creditCtx.type === 'abonar'
+          ? Math.max(0, card.spent - amount)
+          : Math.min(Number(card.limit) || 0, card.spent + amount);
+        creditCtx.id = null;
+        creditCtx.type = null;
+      } else {
+        applyDebtPayment(debtCtx.id, amount, 'manual-payment');
+      }
       closeModal('modal-payment');
       refresh();
     }
@@ -1625,7 +1808,7 @@
     function editAccount(id, key, value) {
       const account = state.accounts.find(item => item.id === id);
       if (!account) return;
-      if (['cardColor', 'textColor', 'cardImage'].includes(key)) account[key] = value || '';
+      if (['cardColor', 'textColor', 'chipColor', 'cardImage'].includes(key)) account[key] = value || '';
       else if (key === 'cardNumber') account[key] = sanitizeCardNumber(value);
       else if (key === 'name') account[key] = String(value || '').trim() || account.name;
       else account[key] = Math.max(0, Number(value) || 0);
@@ -1639,6 +1822,10 @@
         card[key] = value;
       } else if (key === 'name') {
         card[key] = String(value || '').trim() || card.name;
+      } else if (['cardColor', 'textColor', 'chipColor', 'cardImage'].includes(key)) {
+        card[key] = value || '';
+      } else if (key === 'cardNumber') {
+        card[key] = sanitizeCardNumber(value);
       } else {
         card[key] = Math.max(0, Number(value) || 0);
       }
@@ -1665,7 +1852,16 @@
       }
     }
     function onCardNumberInput(input) {
-      input.value = String(input.value || '').replace(/\D/g, '').slice(0, 4);
+      input.value = String(input.value || '').replace(/\D/g, '').slice(0, 19);
+    }
+    function toggleCardNumberVisibility(button) {
+      const nextVisible = button.dataset.visible !== 'true';
+      button.style.opacity = '0';
+      setTimeout(() => {
+        button.textContent = nextVisible ? button.dataset.full : button.dataset.masked;
+        button.dataset.visible = String(nextVisible);
+        button.style.opacity = '1';
+      }, 120);
     }
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
@@ -1681,7 +1877,8 @@
         name: $('#new-account-name').value.trim() || 'Nueva cuenta',
         cardColor: $('#new-account-card-color').value || DEFAULT_CARD_COLOR,
         textColor: $('#new-account-text-color').value || DEFAULT_TEXT_COLOR,
-        cardNumber: sanitizeCardNumber($('#new-account-card-number').value || '0000'),
+        cardNumber: sanitizeCardNumber($('#new-account-card-number').value || ''),
+        chipColor: currentTheme.chipColor || DEFAULT_THEME.chipColor,
         cardImage: addAccountDraft.cardImage || ''
       };
       const available = Math.max(0, Number($('#new-account-available').value) || 0);
@@ -1709,8 +1906,19 @@
         .then(base64 => editAccount(accountId, 'cardImage', base64))
         .catch(() => toast('No se pudo leer la imagen'));
     }
+    function onEditCardImageChange(cardId, input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      fileToBase64(file)
+        .then(base64 => editCard(cardId, 'cardImage', base64))
+        .catch(() => toast('No se pudo leer la imagen'));
+    }
     function removeAccountImage(accountId) {
       editAccount(accountId, 'cardImage', '');
+      toast('Foto removida');
+    }
+    function removeCardImage(cardId) {
+      editCard(cardId, 'cardImage', '');
       toast('Foto removida');
     }
     function openAddAccountModal() {
@@ -1719,7 +1927,7 @@
       $('#new-account-saved').value = '';
       $('#new-account-card-color').value = DEFAULT_CARD_COLOR;
       $('#new-account-text-color').value = DEFAULT_TEXT_COLOR;
-      $('#new-account-card-number').value = '0000';
+      $('#new-account-card-number').value = '';
       $('#new-account-image').value = '';
       addAccountDraft.cardImage = '';
       updateAddAccountPreview();
@@ -1731,9 +1939,9 @@
       const saved = Math.max(0, Number($('#new-account-saved').value) || 0);
       const cardColor = $('#new-account-card-color').value || DEFAULT_CARD_COLOR;
       const textColor = $('#new-account-text-color').value || DEFAULT_TEXT_COLOR;
-      const cardNumber = sanitizeCardNumber($('#new-account-card-number').value || '0000');
+      const cardNumber = sanitizeCardNumber($('#new-account-card-number').value || '');
       if (!name) return toast('Escribe el nombre');
-      state.accounts.push({ id: uid(), name, available, saved, history: [], cardColor, textColor, cardNumber, cardImage: addAccountDraft.cardImage || '' });
+      state.accounts.push({ id: uid(), name, available, saved, history: [], cardColor, textColor, chipColor: currentTheme.chipColor || DEFAULT_THEME.chipColor, cardNumber, cardImage: addAccountDraft.cardImage || '' });
       closeModal('modal-add-account');
       refresh();
     }
@@ -1751,12 +1959,13 @@
       saveTheme();
       installPWA();
       state.accounts.forEach(account => Object.assign(account, defaultVisualSettingsForAccount(account)));
+      state.cards.forEach(card => Object.assign(card, defaultVisualSettingsForCard(card)));
       refresh();
       toast('Ajustes restablecidos');
     }
 
     function openModal(id) { $('#' + id).classList.add('open'); }
-    function closeModal(id) { $('#' + id).classList.remove('open'); }
+    function closeModal(id) { const modal = $('#' + id); modal.classList.remove('input-engaged'); modal.classList.remove('open'); document.body.classList.remove('keyboard-active'); }
     $$('.modal-wrap').forEach(modal => modal.addEventListener('click', event => {
       if (event.target === modal) modal.classList.remove('open');
     }));
@@ -1844,6 +2053,25 @@
       nextPage.addEventListener('animationend', cleanup, { once: true });
       currentTab = tab;
     }
+
+    function setupInputFocusTransitions() {
+      document.addEventListener('focusin', event => {
+        const modalWrap = event.target.closest('.modal-wrap');
+        if (!modalWrap) return;
+        modalWrap.classList.add('input-engaged');
+        document.body.classList.add('keyboard-active');
+      });
+      document.addEventListener('focusout', event => {
+        const modalWrap = event.target.closest('.modal-wrap');
+        if (!modalWrap) return;
+        requestAnimationFrame(() => {
+          if (!modalWrap.contains(document.activeElement)) {
+            modalWrap.classList.remove('input-engaged');
+            document.body.classList.remove('keyboard-active');
+          }
+        });
+      });
+    }
     function setupNav() {
       $$('.nav-btn').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
       window.addEventListener('resize', () => { if (navInteracted) updateNavIndicator(currentTab); });
@@ -1896,8 +2124,9 @@
 
     syncNotificationCycle();
     installPWA();
-    setupNav();
     refresh();
+    setupInputFocusTransitions();
+    setupNav();
     document.addEventListener('click', event => {
       const panel = $('#notif-panel');
       const btn = $('#notif-btn');
